@@ -28,10 +28,10 @@ function RedirectToDashboard() {
   }, [router]);
 
   return (
-    <div className="min-h-screen gradient-mesh flex items-center justify-center">
+    <div className="min-h-screen texture-minimal flex items-center justify-center">
       <div className="text-center animate-fade-in">
-        <div className="inline-block px-6 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-          <span className="text-sm font-medium text-primary">VIBED</span>
+        <div className="inline-block px-6 py-2 rounded-lg border border-border mb-4">
+          <span className="text-sm font-medium text-foreground tracking-wide">VIBED</span>
         </div>
         <p className="text-muted-foreground mt-2">Taking you to your workspace...</p>
       </div>
@@ -41,40 +41,29 @@ function RedirectToDashboard() {
 
 function SignInForm() {
   return (
-    <div className="min-h-screen gradient-mesh flex items-center justify-center px-4">
+    <div className="min-h-screen texture-minimal flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Hero Badge */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 mb-6">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-medium bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              Your minimalist workspace
-            </span>
-          </div>
-
+        {/* Hero Section */}
+        <div className="text-center mb-12 animate-fade-in">
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-tight">
-            Welcome to{' '}
-            <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              VIBED
-            </span>
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 tracking-tight text-foreground">
+            VIBED
           </h1>
-          <p className="text-lg text-muted-foreground max-w-sm mx-auto">
-            Simple, beautiful task management that sparks joy
+          <p className="text-lg text-muted-foreground max-w-sm mx-auto leading-relaxed">
+            A minimalist workspace for clarity and focus
           </p>
         </div>
 
         {/* Auth Card */}
-        <div className="glass rounded-2xl p-8 shadow-2xl shadow-primary/5 animate-scale-in stagger-2">
+        <div className="card-minimal rounded-xl p-8 animate-scale-in stagger-2">
           <div className="flex flex-col gap-3">
             <SignInButton mode="modal">
-              <Button className="w-full group relative">
-                <span className="relative z-10">Sign in to continue</span>
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Button className="w-full">
+                Sign in to continue
               </Button>
             </SignInButton>
 
-            <div className="relative my-2">
+            <div className="relative my-3">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
               </div>
@@ -85,29 +74,27 @@ function SignInForm() {
 
             <SignUpButton mode="modal">
               <Button variant="outline" className="w-full">
-                Create your account
+                Create account
               </Button>
             </SignUpButton>
           </div>
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-border/50">
-            <div className="px-3 py-1.5 rounded-full bg-secondary/10 text-secondary text-xs font-medium">
-              ✓ Clean & minimal
+          {/* Feature List */}
+          <div className="mt-8 pt-6 border-t border-border/50 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-1 h-1 rounded-full bg-primary" />
+              <span>Clean & minimal interface</span>
             </div>
-            <div className="px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-medium">
-              ✓ Fast & smooth
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-1 h-1 rounded-full bg-accent" />
+              <span>Focus on what matters</span>
             </div>
-            <div className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-              ✓ Made with joy
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-1 h-1 rounded-full bg-secondary" />
+              <span>Free forever</span>
             </div>
           </div>
         </div>
-
-        {/* Footer Note */}
-        <p className="text-center text-xs text-muted-foreground mt-6 animate-fade-in stagger-3">
-          Free forever • No credit card required
-        </p>
       </div>
     </div>
   );

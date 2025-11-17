@@ -24,7 +24,7 @@ export default function DashboardLayout({
         }
       >
         <AppSidebar variant="inset" />
-        <SidebarInset className="gradient-mesh">
+        <SidebarInset className="texture-minimal">
           <SiteHeader />
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">

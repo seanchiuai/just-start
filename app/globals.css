@@ -1,74 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Light mode - Vibrant minimalism */
-  --background: #FFFCF9;
-  --foreground: #0F0F14;
+  /* Light mode - Warm Minimalism */
+  --background: #FBF8F3;
+  --foreground: #2A2A2A;
   --card: #FFFFFF;
-  --card-foreground: #0F0F14;
+  --card-foreground: #2A2A2A;
   --popover: #FFFFFF;
-  --popover-foreground: #0F0F14;
-  --primary: #FF5A5F;
+  --popover-foreground: #2A2A2A;
+  --primary: #C85A3E;
   --primary-foreground: #FFFFFF;
-  --secondary: #10D0BF;
+  --secondary: #8B8680;
   --secondary-foreground: #FFFFFF;
-  --muted: #F8F4F0;
-  --muted-foreground: #6B6B70;
-  --accent: #A78BFA;
+  --muted: #F5F1ED;
+  --muted-foreground: #8B8680;
+  --accent: #556B2F;
   --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
+  --destructive: #C85A3E;
   --destructive-foreground: #FFFFFF;
-  --border: #E8E4DF;
-  --input: #F8F4F0;
-  --ring: #FF5A5F80;
-  --radius: 0.75rem;
-  --chart-1: #FF5A5F;
-  --chart-2: #10D0BF;
-  --chart-3: #A78BFA;
-  --chart-4: #FBBF24;
-  --chart-5: #FB923C;
-  --sidebar: #FEFCFA;
-  --sidebar-foreground: #0F0F14;
-  --sidebar-primary: #FF5A5F;
+  --border: #E8E3DD;
+  --input: #FFFFFF;
+  --ring: #C85A3E40;
+  --radius: 0.5rem;
+  --chart-1: #C85A3E;
+  --chart-2: #556B2F;
+  --chart-3: #8B8680;
+  --chart-4: #D4A574;
+  --chart-5: #9B7653;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #2A2A2A;
+  --sidebar-primary: #C85A3E;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FFF5F5;
-  --sidebar-accent-foreground: #0F0F14;
-  --sidebar-border: #F0EBE6;
-  --sidebar-ring: #FF5A5F40;
+  --sidebar-accent: #F5F1ED;
+  --sidebar-accent-foreground: #2A2A2A;
+  --sidebar-border: #E8E3DD;
+  --sidebar-ring: #C85A3E30;
 }
 
 .dark {
-  --background: #0A0A0F;
-  --foreground: #FAFAFA;
-  --card: #151520;
-  --card-foreground: #FAFAFA;
-  --popover: #151520;
-  --popover-foreground: #FAFAFA;
-  --primary: #FF6B70;
-  --primary-foreground: #FFFFFF;
-  --secondary: #1DE9D6;
-  --secondary-foreground: #0A0A0F;
-  --muted: #1A1A28;
-  --muted-foreground: #A0A0AB;
-  --accent: #B4A7FE;
-  --accent-foreground: #FFFFFF;
-  --destructive: #F87171;
-  --destructive-foreground: #FFFFFF;
-  --border: #252533;
-  --input: #1A1A28;
-  --ring: #FF6B7080;
-  --sidebar: #0F0F18;
-  --sidebar-foreground: #FAFAFA;
-  --sidebar-primary: #FF6B70;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1A1A28;
-  --sidebar-accent-foreground: #FAFAFA;
-  --sidebar-border: #252533;
-  --sidebar-ring: #FF6B7040;
+  --background: #1A1816;
+  --foreground: #F5F1ED;
+  --card: #252220;
+  --card-foreground: #F5F1ED;
+  --popover: #252220;
+  --popover-foreground: #F5F1ED;
+  --primary: #E67E5E;
+  --primary-foreground: #1A1816;
+  --secondary: #A49A94;
+  --secondary-foreground: #1A1816;
+  --muted: #2D2A27;
+  --muted-foreground: #A49A94;
+  --accent: #7A916F;
+  --accent-foreground: #1A1816;
+  --destructive: #E67E5E;
+  --destructive-foreground: #1A1816;
+  --border: #3A3734;
+  --input: #252220;
+  --ring: #E67E5E40;
+  --sidebar: #252220;
+  --sidebar-foreground: #F5F1ED;
+  --sidebar-primary: #E67E5E;
+  --sidebar-primary-foreground: #1A1816;
+  --sidebar-accent: #2D2A27;
+  --sidebar-accent-foreground: #F5F1ED;
+  --sidebar-border: #3A3734;
+  --sidebar-ring: #E67E5E30;
 }
 
 @theme inline {
@@ -87,8 +87,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Outfit', sans-serif;
+  --font-sans: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Spectral', Georgia, serif;
   --font-mono: ui-monospace, 'SF Mono', Consolas, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -115,16 +115,16 @@
 
 
 body {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Spectral', Georgia, serif;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 @layer base {
@@ -207,60 +207,37 @@ h1, h2, h3, h4, h5, h6 {
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
 
-/* Notion-inspired hover effects */
-.notion-hover {
-  @apply transition-all duration-200 hover:bg-muted/50 active:scale-[0.98];
+/* Minimalist hover effects */
+.minimal-hover {
+  @apply transition-all duration-200 hover:bg-muted/30 active:scale-[0.99];
 }
 
-/* Glassmorphism for cards */
-.glass {
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Clean card style */
+.card-minimal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.dark .glass {
-  background: rgba(21, 21, 32, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.dark .card-minimal {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Simplified glass for mobile/low-end devices */
-@media (max-width: 640px) {
-  .glass {
-    backdrop-filter: blur(8px);
-  }
+/* Subtle background texture */
+.texture-minimal {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(at 40% 20%, rgba(200, 90, 62, 0.03) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(85, 107, 47, 0.03) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(139, 134, 128, 0.02) 0px, transparent 50%);
 }
 
-/* Gradient backgrounds */
-.gradient-mesh {
-  background:
-    radial-gradient(at 0% 0%, rgba(255, 90, 95, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(16, 208, 191, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(167, 139, 250, 0.15) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.15) 0px, transparent 50%);
-}
-
-.dark .gradient-mesh {
-  background:
-    radial-gradient(at 0% 0%, rgba(255, 107, 112, 0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(29, 233, 214, 0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(180, 167, 254, 0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.2) 0px, transparent 50%);
-}
-
-/* Simplified gradients for mobile */
-@media (max-width: 640px) {
-  .gradient-mesh {
-    background:
-      radial-gradient(at 50% 0%, rgba(255, 90, 95, 0.08) 0px, transparent 60%),
-      radial-gradient(at 50% 100%, rgba(16, 208, 191, 0.08) 0px, transparent 60%);
-  }
-
-  .dark .gradient-mesh {
-    background:
-      radial-gradient(at 50% 0%, rgba(255, 107, 112, 0.12) 0px, transparent 60%),
-      radial-gradient(at 50% 100%, rgba(29, 233, 214, 0.12) 0px, transparent 60%);
-  }
+.dark .texture-minimal {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(at 40% 20%, rgba(230, 126, 94, 0.05) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(122, 145, 111, 0.05) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(164, 154, 148, 0.03) 0px, transparent 50%);
 }
 
 /* Respect user motion preferences */

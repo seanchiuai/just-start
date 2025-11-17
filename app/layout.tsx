@@ -5,8 +5,8 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ClientBody from "@/components/ClientBody";
 
 export const metadata: Metadata = {
-  title: "VIBED - Minimalist Task Management",
-  description: "Simple, beautiful task management that sparks joy",
+  title: "VIBED - Minimalist Workspace",
+  description: "A minimalist workspace for clarity and focus",
   icons: {
     icon: "/convex.svg",
   },
@@ -28,24 +28,24 @@ export default function RootLayout({
                 unsafe_disableDevelopmentModeWarnings: true,
               },
               elements: {
-                card: "glass border border-border",
+                card: "card-minimal",
                 headerTitle: "text-foreground font-bold",
                 headerSubtitle: "text-muted-foreground",
-                socialButtonsBlockButton: "border-2 border-border hover:border-primary/50 hover:bg-primary/5 transition-all",
-                formButtonPrimary: "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] transition-all",
-                formFieldInput: "bg-input border border-border text-foreground rounded-xl focus:border-primary transition-colors placeholder:text-muted-foreground",
-                footerActionLink: "text-primary hover:text-primary/80 transition-colors",
-                formFieldLabel: "text-foreground",
+                socialButtonsBlockButton: "border border-border hover:border-primary/50 hover:bg-muted/20 transition-all rounded-lg",
+                formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-90 transition-all rounded-lg",
+                formFieldInput: "bg-input border border-border text-foreground rounded-lg focus:border-primary transition-colors placeholder:text-muted-foreground",
+                footerActionLink: "text-primary hover:opacity-80 transition-colors",
+                formFieldLabel: "text-foreground font-medium",
                 formFieldInputShowPasswordButton: "text-muted-foreground hover:text-foreground",
                 dividerLine: "bg-border",
-                dividerText: "text-muted-foreground",
+                dividerText: "text-muted-foreground text-xs",
                 formHeaderTitle: "text-foreground",
                 formHeaderSubtitle: "text-muted-foreground",
                 socialButtonsBlockButtonText: "text-foreground",
-                formFieldSuccessText: "text-secondary",
+                formFieldSuccessText: "text-accent",
                 formFieldErrorText: "text-destructive",
                 identityPreviewText: "text-foreground",
-                identityPreviewEditButton: "text-primary hover:text-primary/80",
+                identityPreviewEditButton: "text-primary hover:opacity-80",
               }
             }}
           >
