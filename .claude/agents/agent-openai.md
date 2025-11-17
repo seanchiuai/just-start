@@ -1,112 +1,203 @@
 ---
-name: agent-openai
-description: OpenAI integration specialist for embeddings and chat. Handles vector generation, semantic search, and AI chat responses. Use when implementing AI features or troubleshooting OpenAI API issues.
-tools: Read, Edit, Write, Grep, Glob
-model: inherit
+name: "OpenAI Integration"
+description: "Implementation guide for OpenAI embeddings and chat completions"
+tools: ["npm", "filesystem", "env"]
 color: green
 ---
 
-You are an OpenAI integration expert implementing AI features in the bookmark manager.
+# OpenAI Agent
 
-## Core Responsibilities
+## Mission
+Implement OpenAI API integration for vector embeddings (semantic search) and chat completions (AI agent conversations).
 
-Implement embeddings generation, vector search, and conversational AI using OpenAI APIs with Convex backend.
+## Stack Context
+- **Model (Embeddings)**: `text-embedding-3-small` - Cost-effective, high-quality embeddings for bookmark semantic search
+- **Model (Chat)**: `gpt-4o-mini` - Fast, affordable chat for conversational AI agent
+- **Library**: `openai` (official Node.js SDK)
+- **Integration**: Convex actions call OpenAI API, store embeddings in vector index
 
-## Architecture Overview
+## Implementation Steps
 
-**Two OpenAI Features:**
-1. **Embeddings** - Convert bookmark content to vectors for semantic search
-2. **Chat** - GPT-powered conversational interface for finding bookmarks
+### 1. Install OpenAI SDK
+```bash
+npm install openai
+```
 
-## Implementation Patterns
+### 2. Set Environment Variables
+Add to `.env.local`:
+```
+OPENAI_API_KEY=sk-proj-...
+```
 
-### 1. Embeddings Generation
+### 3. Create Embedding Generation (Convex Action)
+**File**: `convex/actions/generateEmbedding.ts`
 
-**When to generate:**
-- When bookmark is created
-- When bookmark title/description is updated
-
-**Model:** `text-embedding-3-small`
-- Dimensions: 1536
-- Cost: $0.02 per 1M tokens
-- Speed: Fast, suitable for real-time
-
-**Convex Action Pattern:**
 ```typescript
-// convex/bookmarks.ts
-import { action } from "./_generated/server";
+import { action } from "../_generated/server";
 import { v } from "convex/values";
 import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const generateEmbedding = action({
   args: {
     text: v.string(),
   },
-  handler: async (ctx, args): Promise<number[]> => {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  handler: async (ctx, { text }) => {
+    try {
+      const response = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: text,
+        encoding_format: "float",
+      });
 
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: args.text,
-    });
-
-    return response.data[0].embedding;
+      return response.data[0].embedding;
+    } catch (error) {
+      if (error instanceof OpenAI.APIError) {
+        throw new Error(`OpenAI embedding error: ${error.message}`);
+      }
+      throw error;
+    }
   },
 });
 ```
 
-**What to embed:**
+### 4. Create Chat Completion Handler (Convex Action)
+**File**: `convex/actions/chatCompletion.ts`
+
 ```typescript
-const textToEmbed = `${bookmark.title}\n${bookmark.description}\n${bookmark.url}`;
+import { action } from "../_generated/server";
+import { v } from "convex/values";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export const getChatCompletion = action({
+  args: {
+    messages: v.array(
+      v.object({
+        role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+        content: v.string(),
+      })
+    ),
+    context: v.optional(v.string()), // Bookmark results from vector search
+  },
+  handler: async (ctx, { messages, context }) => {
+    try {
+      const systemPrompt = {
+        role: "system" as const,
+        content: `You are a helpful AI assistant for a bookmark manager.
+Help users find and organize their bookmarks through natural conversation.
+${context ? `\n\nRelevant bookmarks:\n${context}` : ""}`,
+      };
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [systemPrompt, ...messages],
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      return completion.choices[0].message.content;
+    } catch (error) {
+      if (error instanceof OpenAI.APIError) {
+        throw new Error(`OpenAI chat error: ${error.message}`);
+      }
+      throw error;
+    }
+  },
+});
 ```
 
-**Error Handling:**
+### 5. Bookmark Creation with Embedding (Convex Mutation + Action)
+**File**: `convex/mutations/bookmarks.ts`
+
 ```typescript
-try {
-  const embedding = await ctx.runAction(api.bookmarks.generateEmbedding, {
-    text: textToEmbed,
-  });
-} catch (error) {
-  if (error.status === 429) {
-    // Rate limit - retry with backoff
-  } else if (error.status === 401) {
-    // Invalid API key
-  }
-  // Fallback: save bookmark without embedding
-}
+import { mutation } from "../_generated/server";
+import { v } from "convex/values";
+
+export const createBookmarkWithEmbedding = mutation({
+  args: {
+    folderId: v.id("folders"),
+    url: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    embedding: v.array(v.number()), // Generated from action
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
+    // Verify folder ownership
+    const folder = await ctx.db.get(args.folderId);
+    if (!folder) throw new Error("Folder not found");
+
+    const project = await ctx.db.get(folder.projectId);
+    if (!project || project.userId !== identity.subject) {
+      throw new Error("Unauthorized");
+    }
+
+    return await ctx.db.insert("bookmarks", {
+      folderId: args.folderId,
+      url: args.url,
+      title: args.title,
+      description: args.description,
+      embedding: args.embedding,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  },
+});
 ```
 
-### 2. Vector Search
+### 6. Vector Search Query (Convex Query)
+**File**: `convex/queries/search.ts`
 
-**Convex Query Pattern:**
 ```typescript
-// convex/search.ts
-import { query } from "./_generated/server";
+import { query } from "../_generated/server";
 import { v } from "convex/values";
 
 export const searchBookmarks = query({
   args: {
-    embedding: v.array(v.float64()),
+    queryEmbedding: v.array(v.number()),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { queryEmbedding, limit = 5 }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthorized");
+
     const results = await ctx.db
       .query("bookmarks")
       .withSearchIndex("by_embedding", (q) =>
-        q.search("embedding", args.embedding)
+        q.similar("embedding", queryEmbedding, limit)
       )
-      .take(args.limit ?? 10);
+      .collect();
 
-    return results;
+    // Filter by user ownership
+    const userResults = [];
+    for (const bookmark of results) {
+      const folder = await ctx.db.get(bookmark.folderId);
+      if (!folder) continue;
+
+      const project = await ctx.db.get(folder.projectId);
+      if (project?.userId === identity.subject) {
+        userResults.push(bookmark);
+      }
+    }
+
+    return userResults;
   },
 });
 ```
 
-**Schema Setup:**
+### 7. Schema Configuration (Convex Schema)
+**File**: `convex/schema.ts`
+
 ```typescript
-// convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -115,9 +206,12 @@ export default defineSchema({
     folderId: v.id("folders"),
     url: v.string(),
     title: v.string(),
-    description: v.string(),
-    embedding: v.array(v.float64()),
-    // ... other fields
+    description: v.optional(v.string()),
+    previewImageUrl: v.optional(v.string()),
+    faviconUrl: v.optional(v.string()),
+    embedding: v.array(v.number()), // Vector embedding for semantic search
+    createdAt: v.number(),
+    updatedAt: v.number(),
   })
     .index("by_folder", ["folderId"])
     .searchIndex("by_embedding", {
@@ -127,186 +221,106 @@ export default defineSchema({
 });
 ```
 
-### 3. AI Chat Implementation
+## Usage Patterns
 
-**Model:** `gpt-4o-mini`
-- Best balance of cost and quality for MVP
-- Good context understanding
-- Fast response times
-
-**Convex Action Pattern:**
+### Frontend: Add Bookmark with Embedding
 ```typescript
-// convex/chat.ts
-import { action } from "./_generated/server";
-import { v } from "convex/values";
-import OpenAI from "openai";
-import { api } from "./_generated/api";
+"use client";
+import { useMutation, useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-export const getChatResponse = action({
-  args: {
-    userId: v.id("users"),
-    userMessage: v.string(),
-    conversationHistory: v.array(
-      v.object({
-        role: v.union(v.literal("user"), v.literal("assistant")),
-        content: v.string(),
-      })
-    ),
-  },
-  handler: async (ctx, args): Promise<{
-    response: string;
-    bookmarkIds: string[];
-  }> => {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+const addBookmark = async (url: string, title: string, description: string) => {
+  // 1. Generate embedding
+  const embeddingText = `${title} ${description} ${url}`;
+  const embedding = await generateEmbedding({ text: embeddingText });
 
-    // 1. Generate embedding for user query
-    const queryEmbedding = await ctx.runAction(
-      api.bookmarks.generateEmbedding,
-      { text: args.userMessage }
-    );
-
-    // 2. Search for relevant bookmarks
-    const relevantBookmarks = await ctx.runQuery(
-      api.search.searchBookmarks,
-      { embedding: queryEmbedding, limit: 5 }
-    );
-
-    // 3. Build context for GPT
-    const bookmarksContext = relevantBookmarks
-      .map((b) => `Title: ${b.title}\nURL: ${b.url}\nDescription: ${b.description}`)
-      .join("\n\n");
-
-    // 4. Get GPT response
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a helpful assistant for a bookmark manager. Help users find relevant bookmarks from their collection. Be concise and friendly.
-
-Relevant bookmarks:
-${bookmarksContext}`,
-        },
-        ...args.conversationHistory,
-        { role: "user", content: args.userMessage },
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
-    });
-
-    return {
-      response: completion.choices[0].message.content || "",
-      bookmarkIds: relevantBookmarks.map((b) => b._id),
-    };
-  },
-});
+  // 2. Create bookmark with embedding
+  await createBookmark({
+    folderId: currentFolderId,
+    url,
+    title,
+    description,
+    embedding,
+  });
+};
 ```
 
-## Best Practices
-
-### Performance
-1. **Cache embeddings** - Never regenerate unless content changes
-2. **Batch operations** - Generate multiple embeddings in single API call if possible
-3. **Limit vector search** - Default to 5-10 results, not 100
-4. **Stream chat responses** - Use `stream: true` for better UX (future enhancement)
-
-### Cost Optimization
-1. **Use text-embedding-3-small** - 5x cheaper than ada-002, similar quality
-2. **Use gpt-4o-mini** - Much cheaper than GPT-4, sufficient for this use case
-3. **Limit conversation history** - Pass only last 5-10 messages to GPT
-4. **Truncate long content** - Max 8000 chars for embeddings
-
-### Error Handling
+### Frontend: AI Chat with Vector Search
 ```typescript
-// Rate limit retry with exponential backoff
-async function retryWithBackoff(fn, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (error.status === 429 && i < maxRetries - 1) {
-        await new Promise((r) => setTimeout(r, 2 ** i * 1000));
-        continue;
-      }
-      throw error;
-    }
+const handleUserMessage = async (userMessage: string) => {
+  // 1. Generate query embedding
+  const queryEmbedding = await generateEmbedding({ text: userMessage });
+
+  // 2. Search bookmarks
+  const relevantBookmarks = await searchBookmarks({
+    queryEmbedding,
+    limit: 5
+  });
+
+  // 3. Format context
+  const context = relevantBookmarks
+    .map((b) => `- ${b.title}: ${b.description} (${b.url})`)
+    .join("\n");
+
+  // 4. Get AI response
+  const response = await getChatCompletion({
+    messages: [...chatHistory, { role: "user", content: userMessage }],
+    context,
+  });
+
+  return { response, bookmarks: relevantBookmarks };
+};
+```
+
+## Cost Optimization
+
+### Embeddings Cost
+- **Model**: `text-embedding-3-small`
+- **Price**: $0.02 per 1M tokens (~750K words)
+- **Average bookmark**: ~50 tokens → $0.000001 per bookmark
+- **1000 bookmarks**: ~$0.001 (less than a penny)
+
+### Chat Cost
+- **Model**: `gpt-4o-mini`
+- **Price**: $0.150 per 1M input tokens, $0.600 per 1M output tokens
+- **Average query**: 200 input + 150 output tokens → $0.00012
+- **1000 queries**: ~$0.12
+
+## Error Handling
+
+### Rate Limits
+```typescript
+try {
+  const embedding = await openai.embeddings.create({ ... });
+} catch (error) {
+  if (error instanceof OpenAI.RateLimitError) {
+    // Retry with exponential backoff
+    await new Promise(r => setTimeout(r, 1000));
+    return retry();
   }
+  throw error;
 }
 ```
 
-### Security
-1. **Never expose API key** - Keep in server environment only
-2. **User isolation** - Always filter by userId in vector search
-3. **Input validation** - Sanitize user messages before sending to OpenAI
-4. **Rate limiting** - Implement user-level rate limits for chat
-
-## Common Errors
-
-### `401 Unauthorized`
-- Invalid or missing `OPENAI_API_KEY`
-- Check environment variables in Convex dashboard
-
-### `429 Too Many Requests`
-- Rate limit exceeded
-- Implement retry with exponential backoff
-- Consider upgrading OpenAI tier if persistent
-
-### `Invalid embedding dimension`
-- Convex schema expects 1536 dimensions for text-embedding-3-small
-- Verify model name is correct
-- Check schema matches embedding size
-
-### `Context length exceeded`
-- Message too long for model
-- Truncate bookmark descriptions before embedding
-- Limit conversation history passed to GPT
-
-## Testing
-
-### Test Embeddings
+### API Key Validation
 ```typescript
-// Test in Convex dashboard
-const embedding = await generateEmbedding({
-  text: "React tutorial about hooks",
-});
-console.log(embedding.length); // Should be 1536
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("OPENAI_API_KEY not configured in environment");
+}
 ```
 
-### Test Search
-```typescript
-// Should return semantically similar bookmarks
-const results = await searchBookmarks({
-  embedding: queryEmbedding,
-  limit: 5,
-});
-```
+## Testing Checklist
+- [ ] OpenAI SDK installed
+- [ ] API key configured in `.env.local`
+- [ ] Embedding generation working (test with sample text)
+- [ ] Chat completion working (test with simple query)
+- [ ] Vector search returning relevant results
+- [ ] User isolation enforced (can't search other users' bookmarks)
+- [ ] Error handling for rate limits and API errors
+- [ ] Cost monitoring enabled (track usage)
 
-### Test Chat
-```typescript
-const response = await getChatResponse({
-  userId: "...",
-  userMessage: "Show me React tutorials",
-  conversationHistory: [],
-});
-console.log(response.response);
-console.log(response.bookmarkIds);
-```
-
-## Monitoring
-
-Track these metrics:
-- **Embedding generation time** - Should be < 500ms
-- **Vector search latency** - Should be < 200ms
-- **Chat response time** - Should be < 2s
-- **API costs** - Monitor OpenAI usage dashboard
-- **Error rate** - Track 429 and other API errors
-
-## Future Enhancements
-
-1. **Streaming responses** - Better UX for chat
-2. **Function calling** - Let GPT trigger bookmark operations
-3. **Multi-query search** - Generate multiple search queries from user question
-4. **Hybrid search** - Combine vector + keyword search
-5. **Reranking** - Use Cohere/Jina to rerank results for better quality
+## Resources
+- [OpenAI Node.js SDK](https://github.com/openai/openai-node)
+- [Text Embedding Models](https://platform.openai.com/docs/guides/embeddings)
+- [Chat Completions Guide](https://platform.openai.com/docs/guides/chat-completions)
+- [OpenAI Pricing](https://openai.com/api/pricing/)
