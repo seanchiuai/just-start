@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## Workflow
-Check `.claude/skills/` → `.claude/agents/` → `.claude/plans/` first.
+Check `PRD.json` for product requirements → `.claude/skills/` → `.claude/agents/` → `.claude/plans/`.
 
 **Agents:** clerk (auth), convex (backend), deployment (EAS), nextjs (frontend)
 
