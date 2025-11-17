@@ -55,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="/tasks">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Sean's Claude Code Web Template</span>
+                <span className="text-base font-semibold">Sean&apos;s Claude Code Web Template</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

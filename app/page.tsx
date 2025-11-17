@@ -31,7 +31,7 @@ function RedirectToDashboard() {
     <div className="min-h-screen texture-minimal flex items-center justify-center">
       <div className="text-center animate-fade-in">
         <div className="inline-block px-6 py-2 rounded-lg border border-border mb-4">
-          <span className="text-sm font-medium text-foreground tracking-wide">Sean's Claude Code Web Template</span>
+          <span className="text-sm font-medium text-foreground tracking-wide">Sean&apos;s Claude Code Web Template</span>
         </div>
         <p className="text-muted-foreground mt-2">Taking you to your workspace...</p>
       </div>
@@ -47,7 +47,7 @@ function SignInForm() {
         <div className="text-center mb-12 animate-fade-in">
           {/* Main Heading */}
           <h1 className="text-6xl md:text-7xl font-bold mb-6 tracking-tight text-foreground">
-            Sean's Claude Code Web Template
+            Sean&apos;s Claude Code Web Template
           </h1>
           <p className="text-lg text-muted-foreground max-w-sm mx-auto leading-relaxed">
             A production-ready template for rapid development
