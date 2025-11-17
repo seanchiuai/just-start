@@ -26,10 +26,10 @@ export const searchBookmarks = query({
     const limit = args.limit ?? 10;
 
     // If projectId provided, fetch folders first for filtering
-    if (args.projectId) {
+    if (args.projectId !== undefined) {
       const folders = await ctx.db
         .query("folders")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId!))
         .collect();
 
       const folderIds = new Set(folders.map((f) => f._id));
@@ -39,7 +39,7 @@ export const searchBookmarks = query({
       const allResults = await ctx.db
         .query("bookmarks")
         .withSearchIndex("by_embedding", (q) =>
-          q.search("embedding", args.embedding).eq("userId", userId)
+          q.search("embedding", args.embedding as any).eq("userId", userId)
         )
         .take(initialLimit);
 
@@ -53,7 +53,7 @@ export const searchBookmarks = query({
     return await ctx.db
       .query("bookmarks")
       .withSearchIndex("by_embedding", (q) =>
-        q.search("embedding", args.embedding).eq("userId", userId)
+        q.search("embedding", args.embedding as any).eq("userId", userId)
       )
       .take(limit);
   },
@@ -75,7 +75,7 @@ export const searchBookmarksInFolder = query({
       .query("bookmarks")
       .withSearchIndex("by_embedding", (q) =>
         q
-          .search("embedding", args.embedding)
+          .search("embedding", args.embedding as any)
           .eq("userId", userId)
           .eq("folderId", args.folderId)
       )

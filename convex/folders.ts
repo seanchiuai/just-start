@@ -22,7 +22,7 @@ async function getFolderDepth(
     }
 
     visited.add(currentId);
-    const folder = await ctx.db.get(currentId);
+    const folder: Doc<"folders"> | null = await ctx.db.get(currentId);
 
     if (!folder) break;
 

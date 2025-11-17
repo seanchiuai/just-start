@@ -20,9 +20,11 @@ function truncateToTokenLimit(text: string): string {
 
   // Truncate to max tokens
   const truncatedTokens = tokens.slice(0, MAX_TOKENS);
-  const truncatedText = encoder.decode(truncatedTokens);
+  const decoded = encoder.decode(truncatedTokens);
   encoder.free();
 
+  // Convert Uint8Array to string if needed
+  const truncatedText = typeof decoded === "string" ? decoded : new TextDecoder().decode(decoded);
   return truncatedText;
 }
 

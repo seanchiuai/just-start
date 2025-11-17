@@ -77,7 +77,7 @@ export const getChatResponse = action({
     });
 
     // Get user memory/preferences
-    const userMemories = await ctx.runQuery(api.memory.getUserMemories);
+    const userMemories = await ctx.runQuery(api.memory.getUserMemories, {});
 
     // Build context with sanitized memory values
     const memoriesContext = userMemories
