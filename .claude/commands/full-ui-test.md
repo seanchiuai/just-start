@@ -3,7 +3,7 @@ description: Test the entire user-flow and all functionalities for errors.
 argument-hint: []
 ---
 
-# Command: /full-ui-test
+# Command: Full UI Check
 
 1. run `npm run dev` and use playwright to test the app. 
 2. When log-in is needed, STOP and ask the human (me) to do it.

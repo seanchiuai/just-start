@@ -2,7 +2,7 @@
 description: Set up the project for first-time use by following setup.md and walking through any steps that require human intervention
 ---
 
-# Command: /setup
+# Command: Setup
 
 Read and execute all instructions in `/docs/setup.md` in the project root to perform initial project setup.
 
