@@ -1,0 +1,10 @@
+export { HeroSection } from "./hero-section";
+export { ProblemSection } from "./problem-section";
+export { SolutionSection } from "./solution-section";
+export { HowItWorksSection } from "./how-it-works-section";
+export { FeaturesSection } from "./features-section";
+export { PRDPreviewSection } from "./prd-preview-section";
+export { TestimonialsSection } from "./testimonials-section";
+export { PricingSection } from "./pricing-section";
+export { CTASection } from "./cta-section";
+export { Footer } from "./footer";

@@ -5,10 +5,22 @@ import { ClerkProvider } from "@clerk/nextjs";
 import ClientBody from "@/components/ClientBody";
 
 export const metadata: Metadata = {
-  title: "Sean's Claude Code Web Template",
-  description: "A production-ready Next.js + Convex + Clerk template for rapid development",
+  title: "Just Start - AI-Powered PRD Generator",
+  description: "Transform your app idea into a production-ready Product Requirements Document. AI-guided questions, tech stack research, and comprehensive PRDs.",
+  keywords: ["PRD generator", "product requirements", "app planning", "tech stack", "AI planning tool"],
   icons: {
     icon: "/convex.svg",
+  },
+  openGraph: {
+    title: "Just Start - Stop Coding. Start Planning.",
+    description: "Generate professional PRDs with AI guidance",
+    images: ["/og-image.png"],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Just Start - AI PRD Generator",
+    description: "Transform ideas into actionable PRDs",
   },
 };
 
