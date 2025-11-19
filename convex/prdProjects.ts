@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalQuery } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 
 // List user's projects
 // Returns null for auth/user failures, empty array for no projects
@@ -220,5 +220,60 @@ export const remove = mutation({
       // Re-throw to surface the error to the caller
       throw error;
     }
+  },
+});
+
+// Internal: Update status without auth (for actions)
+export const updateStatusInternal = internalMutation({
+  args: {
+    projectId: v.id("prdProjects"),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("questions"),
+      v.literal("research"),
+      v.literal("confirmation"),
+      v.literal("validation"),
+      v.literal("completed")
+    ),
+    currentStep: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.projectId, {
+      status: args.status,
+      ...(args.currentStep !== undefined && { currentStep: args.currentStep }),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Internal: Update generation status
+export const updateGenerationStatus = internalMutation({
+  args: {
+    projectId: v.id("prdProjects"),
+    stage: v.string(),
+    progress: v.number(),
+    message: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.projectId, {
+      generationStatus: {
+        stage: args.stage,
+        progress: args.progress,
+        message: args.message,
+        updatedAt: Date.now(),
+      },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Internal: Clear generation status
+export const clearGenerationStatus = internalMutation({
+  args: { projectId: v.id("prdProjects") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.projectId, {
+      generationStatus: undefined,
+      updatedAt: Date.now(),
+    });
   },
 });

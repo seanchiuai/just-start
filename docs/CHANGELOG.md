@@ -2,6 +2,80 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Security Fixes
+
+**Export Action Authorization:**
+- `exportJSON` and `exportMarkdown` now require authentication
+- Added ownership verification using `verifyOwnership` internal query
+- Prevents unauthorized access to other users' PRDs
+
+**Secure Token Generation:**
+- Replaced `Math.random()` with `crypto.randomBytes(32)`
+- Tokens now use URL-safe base64 encoding (256 bits entropy)
+- Cryptographically secure share links
+
+**Compatibility Validation:**
+- Removed Perplexity API dependency from validation
+- Now uses only Anthropic Claude for compatibility analysis
+- More comprehensive analysis with single API call
+
+---
+
+### Implemented - Plans 03-07: Backend AI Integration
+
+**AI Wrapper Files (`convex/ai/`):**
+- `claude.ts` - Claude API wrapper for questions, recommendations, compatibility, PRD generation
+- `perplexity.ts` - Perplexity API wrapper for tech stack research only
+
+**Plan 03 - AI Questions (`convex/questions.ts`):**
+- `generate` action - Generates 4-6 clarifying questions using Claude Sonnet
+- `save` internal mutation - Saves questions to database
+- `saveAnswers` mutation - Saves user answers, updates project status
+- `getByProject` query - Gets questions for a project with auth
+
+**Plan 04 - Tech Stack (`convex/techStack.ts`):**
+- `research` action - Uses Perplexity for research, Claude for recommendations
+- `save` internal mutation - Saves recommendations to database
+- `confirm` mutation - Confirms user's tech stack selection
+- `getByProject` query - Gets recommendations with auth
+
+**Plan 05 - Validation (`convex/compatibility.ts`):**
+- `validate` action - Uses Claude only for compatibility analysis
+- `save` internal mutation - Saves compatibility check results
+- `acknowledgeWarnings` mutation - Allows proceeding with warnings
+- `getByProject` query - Gets validation results with auth
+
+**Plan 06 - PRD Generation (`convex/prd.ts`):**
+- `generate` action - Generates PRD using Claude with all project context
+- `save` internal mutation - Saves PRD (as JSON string)
+- `getByProject`, `get` queries - Gets PRD with auth
+
+**Plan 07 - Export & Sharing (`convex/prd.ts`):**
+- `createShareLink` mutation - Generates share token with 7-day expiry
+- `revokeShareLink` mutation - Revokes share link
+- `getShared` query - Public query for shared PRDs (no auth)
+- `exportJSON`, `exportMarkdown` actions - Export PRD in different formats
+- `prdToMarkdown` helper - Converts PRD JSON to Markdown
+
+**prdProjects.ts Updates:**
+- Added `updateStatusInternal` - Internal status update for actions
+- Added `updateGenerationStatus` - Real-time progress updates
+- Added `clearGenerationStatus` - Clear progress when done
+
+**Share Page (`app/share/[token]/page.tsx`):**
+- Public page for viewing shared PRDs
+- Displays PRD content (overview, goals, personas, tech stack, features)
+- Handles expired/invalid tokens
+- CTA to create own PRD
+
+**Key Features:**
+- All actions use progress status updates for real-time feedback
+- Retry logic with exponential backoff for API calls
+- Auth checks on all public queries/mutations
+- Internal queries/mutations for action-to-db communication
+
+---
+
 ### Plans
 - Restructured `plan-10-ui-build.md` for parallel execution
   - Mock data approach: UI builds without Convex dependency
