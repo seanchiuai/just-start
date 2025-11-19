@@ -26,6 +26,7 @@ export default function NewProjectPage() {
   const [appName, setAppName] = useState("");
   const [appDescription, setAppDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Creating...");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,13 +39,14 @@ export default function NewProjectPage() {
     }
 
     setIsLoading(true);
+    setLoadingMessage("Creating project...");
     try {
       const projectId = await createProject({
         appName: appName.trim(),
         appDescription: appDescription.trim(),
       });
 
-      // Generate questions using Claude AI
+      setLoadingMessage("Generating questions...");
       await generateQuestions({ projectId });
 
       router.push(`/project/${projectId}/questions`);
@@ -123,7 +125,7 @@ export default function NewProjectPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating & Generating Questions...
+                      {loadingMessage}
                     </>
                   ) : (
                     "Create Project"

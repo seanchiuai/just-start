@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { Loader2 } from "lucide-react";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { QuestionsForm } from "@/components/features/questions/questions-form";
 import { QuestionsFormSkeleton } from "@/components/ui/query-loader";
@@ -17,6 +19,26 @@ export default function QuestionsPage() {
   const project = useQuery(api.prdProjects.get, { projectId });
   const questionSet = useQuery(api.questions.getByProject, { projectId });
   const saveAnswers = useMutation(api.questions.saveAnswers);
+  const generateQuestions = useAction(api.questions.generate);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
+
+  // Fallback: trigger generation if questions don't exist
+  useEffect(() => {
+    if (project && questionSet === null && !isGenerating && !generationError) {
+      setIsGenerating(true);
+      generateQuestions({ projectId })
+        .then(() => {
+          setIsGenerating(false);
+        })
+        .catch((err) => {
+          console.error("Failed to generate questions:", err);
+          setGenerationError("Failed to generate questions. Please try again.");
+          setIsGenerating(false);
+        });
+    }
+  }, [project, questionSet, projectId, isGenerating, generationError, generateQuestions]);
 
   const handleSubmit = async (answers: Record<string, string>) => {
     try {
@@ -68,7 +90,7 @@ export default function QuestionsPage() {
     );
   }
 
-  // Error state - questions not found
+  // Generating state or error state
   if (questionSet === null) {
     return (
       <WizardLayout
@@ -76,11 +98,18 @@ export default function QuestionsPage() {
         currentStep={project.currentStep}
       >
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
-            <p className="text-sm text-destructive">
-              Questions have not been generated for this project yet.
-            </p>
-          </div>
+          {generationError ? (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+              <p className="text-sm text-destructive">{generationError}</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Generating questions for your project...
+              </p>
+            </div>
+          )}
         </div>
       </WizardLayout>
     );
