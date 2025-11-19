@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -27,8 +28,16 @@ export default function PRDPage() {
   // Share mutations
   const createShareLink = useMutation(api.prd.createShareLink);
 
-  // Parse PRD content
-  const prdContent = prd ? (JSON.parse(prd.content) as PRDContent) : null;
+  // Parse PRD content safely with memoization
+  const prdContent = useMemo(() => {
+    if (!prd) return null;
+    try {
+      return JSON.parse(prd.content) as PRDContent;
+    } catch (error) {
+      console.error("Failed to parse PRD content:", error);
+      return null;
+    }
+  }, [prd]);
 
   const handleExport = async (format: "json" | "markdown") => {
     if (!prd) return;
