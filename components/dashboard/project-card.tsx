@@ -13,25 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-type ProjectStatus = "draft" | "questions" | "research" | "confirmation" | "validation" | "completed";
-
-const statusColors: Record<ProjectStatus, string> = {
-    draft: "bg-gray-100 text-gray-700",
-    questions: "bg-blue-100 text-blue-700",
-    research: "bg-purple-100 text-purple-700",
-    confirmation: "bg-yellow-100 text-yellow-700",
-    validation: "bg-orange-100 text-orange-700",
-    completed: "bg-green-100 text-green-700",
-};
-
-const statusLabels: Record<ProjectStatus, string> = {
-    draft: "Draft",
-    questions: "Questions",
-    research: "Research",
-    confirmation: "Confirmation",
-    validation: "Validation",
-    completed: "Completed",
-};
+import { ProjectStatus, statusColors, statusLabels } from "@/lib/types/prd";
 
 export function ProjectCard({
     project,

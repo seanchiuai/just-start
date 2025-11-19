@@ -6,7 +6,7 @@ import { internal } from "./_generated/api";
 import { generatePRD } from "./ai/claude";
 import { generateToken } from "./lib/utils";
 import { prdToMarkdown } from "./lib/markdown";
-import { requireAuth, requirePrdOwnership } from "./lib/auth";
+import { requirePrdOwnership } from "./lib/auth";
 
 // Generate PRD using Claude
 export const generate = action({
@@ -96,7 +96,6 @@ export const generate = action({
       // Clear generation status on error
       await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
         projectId: args.projectId,
-        stage: "error", // Assuming clearGenerationStatus can handle this or we might need a separate error handler
       });
 
       throw error;
