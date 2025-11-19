@@ -1,74 +1,103 @@
-@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Light mode - Warm Minimalism */
-  --background: #FBF8F3;
-  --foreground: #2A2A2A;
+  /* Typography - Technical Editorial */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Colors - Technical Editorial (Ink/Paper/Gold) */
+  --color-ink: #1a1f2e;
+  --color-ink-light: #3d4559;
+  --color-ink-muted: #6b7280;
+  --color-paper: #fafaf9;
+  --color-paper-warm: #f5f4f0;
+  --color-paper-dark: #e8e6e1;
+  --color-gold: #c9a227;
+  --color-gold-muted: #d4b85a;
+  --color-success: #2d6a4f;
+  --color-warning: #b45309;
+  --color-critical: #9f1239;
+  --color-info: #1e40af;
+
+  /* Semantic tokens */
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
   --card: #FFFFFF;
-  --card-foreground: #2A2A2A;
+  --card-foreground: var(--color-ink);
   --popover: #FFFFFF;
-  --popover-foreground: #2A2A2A;
-  --primary: #C85A3E;
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-gold);
   --primary-foreground: #FFFFFF;
-  --secondary: #8B8680;
+  --secondary: var(--color-ink-muted);
   --secondary-foreground: #FFFFFF;
-  --muted: #F5F1ED;
-  --muted-foreground: #8B8680;
-  --accent: #556B2F;
+  --muted: var(--color-paper-warm);
+  --muted-foreground: var(--color-ink-muted);
+  --accent: var(--color-gold);
   --accent-foreground: #FFFFFF;
-  --destructive: #C85A3E;
+  --destructive: var(--color-critical);
   --destructive-foreground: #FFFFFF;
-  --border: #E8E3DD;
+  --border: var(--color-paper-dark);
   --input: #FFFFFF;
-  --ring: #C85A3E40;
+  --ring: rgba(201, 162, 39, 0.25);
   --radius: 0.5rem;
-  --chart-1: #C85A3E;
-  --chart-2: #556B2F;
-  --chart-3: #8B8680;
-  --chart-4: #D4A574;
-  --chart-5: #9B7653;
+  --chart-1: var(--color-gold);
+  --chart-2: var(--color-success);
+  --chart-3: var(--color-ink-muted);
+  --chart-4: var(--color-warning);
+  --chart-5: var(--color-info);
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #2A2A2A;
-  --sidebar-primary: #C85A3E;
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-gold);
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5F1ED;
-  --sidebar-accent-foreground: #2A2A2A;
-  --sidebar-border: #E8E3DD;
-  --sidebar-ring: #C85A3E30;
+  --sidebar-accent: var(--color-paper-warm);
+  --sidebar-accent-foreground: var(--color-ink);
+  --sidebar-border: var(--color-paper-dark);
+  --sidebar-ring: rgba(201, 162, 39, 0.2);
 }
 
 .dark {
-  --background: #1A1816;
-  --foreground: #F5F1ED;
-  --card: #252220;
-  --card-foreground: #F5F1ED;
-  --popover: #252220;
-  --popover-foreground: #F5F1ED;
-  --primary: #E67E5E;
-  --primary-foreground: #1A1816;
-  --secondary: #A49A94;
-  --secondary-foreground: #1A1816;
-  --muted: #2D2A27;
-  --muted-foreground: #A49A94;
-  --accent: #7A916F;
-  --accent-foreground: #1A1816;
-  --destructive: #E67E5E;
-  --destructive-foreground: #1A1816;
-  --border: #3A3734;
-  --input: #252220;
-  --ring: #E67E5E40;
-  --sidebar: #252220;
-  --sidebar-foreground: #F5F1ED;
-  --sidebar-primary: #E67E5E;
-  --sidebar-primary-foreground: #1A1816;
-  --sidebar-accent: #2D2A27;
-  --sidebar-accent-foreground: #F5F1ED;
-  --sidebar-border: #3A3734;
-  --sidebar-ring: #E67E5E30;
+  /* Dark mode - Technical Editorial */
+  --color-ink: #f5f4f0;
+  --color-ink-light: #d4d3cf;
+  --color-ink-muted: #9ca3af;
+  --color-paper: #1a1f2e;
+  --color-paper-warm: #252a3a;
+  --color-paper-dark: #3d4559;
+  --color-gold: #d4b85a;
+  --color-gold-muted: #c9a227;
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+  --card: #252a3a;
+  --card-foreground: var(--color-ink);
+  --popover: #252a3a;
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-gold);
+  --primary-foreground: #1a1f2e;
+  --secondary: var(--color-ink-muted);
+  --secondary-foreground: #1a1f2e;
+  --muted: var(--color-paper-warm);
+  --muted-foreground: var(--color-ink-muted);
+  --accent: var(--color-gold);
+  --accent-foreground: #1a1f2e;
+  --destructive: #f87171;
+  --destructive-foreground: #1a1f2e;
+  --border: var(--color-paper-dark);
+  --input: #252a3a;
+  --ring: rgba(212, 184, 90, 0.25);
+  --sidebar: #252a3a;
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-gold);
+  --sidebar-primary-foreground: #1a1f2e;
+  --sidebar-accent: var(--color-paper-warm);
+  --sidebar-accent-foreground: var(--color-ink);
+  --sidebar-border: var(--color-paper-dark);
+  --sidebar-ring: rgba(212, 184, 90, 0.2);
 }
 
 @theme inline {
@@ -87,9 +116,23 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --font-sans: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Spectral', Georgia, serif;
-  --font-mono: ui-monospace, 'SF Mono', Consolas, monospace;
+  /* Technical Editorial fonts */
+  --font-sans: var(--font-body);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Custom colors for Technical Editorial */
+  --color-gold: var(--color-gold);
+  --color-gold-muted: var(--color-gold-muted);
+  --color-ink: var(--color-ink);
+  --color-ink-light: var(--color-ink-light);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-paper: var(--color-paper);
+  --color-paper-warm: var(--color-paper-warm);
+  --color-paper-dark: var(--color-paper-dark);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-critical: var(--color-critical);
+  --color-info: var(--color-info);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -115,16 +158,26 @@
 
 
 body {
-  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-body);
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Spectral', Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* Technical Editorial display text */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Technical Editorial monospace */
+.font-mono {
+  font-family: var(--font-mono);
 }
 
 @layer base {
@@ -271,4 +324,141 @@ h1, h2, h3, h4, h5, h6 {
   .notion-hover {
     @apply transition-none;
   }
+}
+
+/* Technical Editorial Animations */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--color-gold); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 162, 39, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(201, 162, 39, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 162, 39, 0);
+  }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-typewriter {
+  overflow: hidden;
+  border-right: 2px solid var(--color-gold);
+  white-space: nowrap;
+  animation: typewriter 2s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+/* Dot-grid background texture */
+.bg-dotgrid {
+  background-image: radial-gradient(circle, var(--color-ink-muted) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.dark .bg-dotgrid {
+  background-image: radial-gradient(circle, var(--color-ink-muted) 0.5px, transparent 0.5px);
+}
+
+/* Grain texture overlay */
+.texture-grain {
+  position: relative;
+}
+
+.texture-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Paper warm background */
+.bg-paper-warm {
+  background-color: var(--color-paper-warm);
+}
+
+/* Gold accent utilities */
+.text-gold {
+  color: var(--color-gold);
+}
+
+.bg-gold {
+  background-color: var(--color-gold);
+}
+
+.border-gold {
+  border-color: var(--color-gold);
+}
+
+/* Status colors */
+.text-success {
+  color: var(--color-success);
+}
+
+.bg-success {
+  background-color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.bg-warning {
+  background-color: var(--color-warning);
+}
+
+.text-critical {
+  color: var(--color-critical);
+}
+
+.bg-critical {
+  background-color: var(--color-critical);
+}
+
+/* Technical Editorial card style */
+.card-editorial {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dark .card-editorial {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Dotted connector line */
+.connector-dotted {
+  border-left: 2px dotted var(--color-ink-muted);
 }
