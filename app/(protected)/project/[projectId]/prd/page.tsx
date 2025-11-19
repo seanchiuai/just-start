@@ -2,27 +2,200 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useQuery, useMutation, useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { PRDViewer } from "@/components/features/prd/prd-viewer";
 import { PRDActions } from "@/components/features/prd/prd-actions";
-import { mockPRD } from "@/lib/mocks/prd";
+import { PRDSkeleton } from "@/components/ui/query-loader";
+import type { PRDContent } from "@/lib/types/prd";
 
 export default function PRDPage() {
-  // Mock project data - will be replaced with Convex query during integration
-  const mockProject = {
-    appName: "TaskFlow",
-    currentStep: 5,
+  const params = useParams();
+  const projectId = params.projectId as Id<"prdProjects">;
+
+  // Fetch project and PRD data
+  const project = useQuery(api.prdProjects.get, { projectId });
+  const prd = useQuery(api.prd.getByProject, { projectId });
+
+  // Export actions
+  const exportJSON = useAction(api.prd.exportJSON);
+  const exportMarkdown = useAction(api.prd.exportMarkdown);
+
+  // Share mutations
+  const createShareLink = useMutation(api.prd.createShareLink);
+  const revokeShareLink = useMutation(api.prd.revokeShareLink);
+
+  // Parse PRD content
+  const prdContent = prd ? (JSON.parse(prd.content) as PRDContent) : null;
+
+  const handleExport = async (format: "json" | "markdown") => {
+    if (!prd) return;
+    try {
+      const result =
+        format === "json"
+          ? await exportJSON({ prdId: prd._id })
+          : await exportMarkdown({ prdId: prd._id });
+
+      // Create download
+      const blob = new Blob([result.content], {
+        type: format === "json" ? "application/json" : "text/markdown",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
   };
 
-  const handleExport = (format: "json" | "markdown") => {
-    // Log for development - will be replaced with Convex action
-    console.log(`Exporting PRD as ${format}`);
+  const handleShare = async () => {
+    if (!prd) return;
+    try {
+      const result = await createShareLink({ prdId: prd._id });
+      const shareUrl = `${window.location.origin}/share/${result.shareToken}`;
+      await navigator.clipboard.writeText(shareUrl);
+      alert(
+        `Share link copied! Expires: ${new Date(result.expiresAt).toLocaleDateString()}`
+      );
+    } catch (error) {
+      console.error("Share failed:", error);
+    }
   };
 
-  const handleShare = () => {
-    // Log for development - will be replaced with share dialog
-    console.log("Opening share dialog");
-  };
+  // Loading state
+  if (project === undefined || prd === undefined) {
+    return (
+      <div className="min-h-screen bg-background bg-dotgrid">
+        {/* Header */}
+        <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+              <h1 className="font-display text-xl font-semibold">Loading...</h1>
+              <div className="w-24" /> {/* Spacer */}
+            </div>
+          </div>
+        </header>
+
+        {/* Main content with skeleton */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-paper-warm rounded-lg border p-6 sm:p-8 shadow-sm">
+              <PRDSkeleton />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state - project not found or not authorized
+  if (project === null) {
+    return (
+      <div className="min-h-screen bg-background bg-dotgrid">
+        {/* Header */}
+        <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+              <h1 className="font-display text-xl font-semibold">Error</h1>
+              <div className="w-24" /> {/* Spacer */}
+            </div>
+          </div>
+        </header>
+
+        {/* Error message */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-paper-warm rounded-lg border p-6 sm:p-8 shadow-sm">
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+                  <p className="text-sm text-destructive">
+                    Project not found or you don&apos;t have access to this
+                    project.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // No PRD generated yet
+  if (prd === null || !prdContent) {
+    return (
+      <div className="min-h-screen bg-background bg-dotgrid">
+        {/* Header */}
+        <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Link href="/dashboard">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Link>
+              </Button>
+              <h1 className="font-display text-xl font-semibold">
+                {project.appName} PRD
+              </h1>
+              <div className="w-24" /> {/* Spacer */}
+            </div>
+          </div>
+        </header>
+
+        {/* No PRD message */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-paper-warm rounded-lg border p-6 sm:p-8 shadow-sm">
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="rounded-lg border border-muted p-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No PRD has been generated for this project yet. Complete the
+                    project setup to generate your PRD.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background bg-dotgrid">
@@ -42,7 +215,7 @@ export default function PRDPage() {
               </Link>
             </Button>
             <h1 className="font-display text-xl font-semibold">
-              {mockProject.appName} PRD
+              {project.appName} PRD
             </h1>
             <div className="w-24" /> {/* Spacer */}
           </div>
@@ -53,7 +226,7 @@ export default function PRDPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="bg-paper-warm rounded-lg border p-6 sm:p-8 shadow-sm">
-            <PRDViewer prd={mockPRD} />
+            <PRDViewer prd={prdContent} />
           </div>
         </div>
       </main>
