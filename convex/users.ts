@@ -8,14 +8,19 @@ import {
 import { Id } from "./_generated/dataModel";
 import { DEFAULT_SUBSCRIPTION } from "./schema";
 
+// Helper function to query user by Clerk ID
+const queryByClerkId = async (db: any, clerkId: string) => {
+  return await db
+    .query("users")
+    .withIndex("by_clerk_id", (q: any) => q.eq("clerkId", clerkId))
+    .unique();
+};
+
 // Get current user by Clerk ID
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    return await queryByClerkId(ctx.db, args.clerkId);
   },
 });
 
@@ -47,10 +52,7 @@ export const getInternal = internalQuery({
 export const getByClerkIdInternal = internalQuery({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
+    return await queryByClerkId(ctx.db, args.clerkId);
   },
 });
 

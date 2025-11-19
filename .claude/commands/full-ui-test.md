@@ -8,7 +8,7 @@ argument-hint: []
 1. run `npm run dev` and use playwright to test the app. 
 2. When log-in is needed, STOP and ask the human (me) to do it.
 3. After user logs in manually, continue to test all functionalities of the app. Do the minimal just enough to test all functionalities.
-4. If an error stopping you from testing, end the tes there and generate the report.
+4. If an error stopping you from testing, end the test there and generate the report.
 5. After test is complete, list all errors found throughout the testing process by creating a md file for each problem encountered. Store groups of errors in `/docs/errors` folder as seperate files.
 
 Notes:

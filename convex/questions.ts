@@ -9,6 +9,59 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { generateQuestions } from "./ai/claude";
+import { ActionCtx } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+
+// Helper function to perform question generation
+async function performQuestionGeneration(
+  ctx: ActionCtx,
+  projectId: Id<"prdProjects">,
+  project: { appName: string; appDescription: string }
+) {
+  // Update project status to show we're generating
+  await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+    projectId,
+    stage: "generating_questions",
+    progress: 10,
+    message: "Analyzing your description...",
+  });
+
+  try {
+    // Generate questions using Claude
+    const questions = await generateQuestions(
+      project.appName,
+      project.appDescription
+    );
+
+    // Update progress
+    await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+      projectId,
+      stage: "generating_questions",
+      progress: 80,
+      message: "Finalizing questions...",
+    });
+
+    // Save questions to database
+    await ctx.runMutation(internal.questions.save, {
+      projectId,
+      questions,
+    });
+
+    // Clear generation status
+    await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+      projectId,
+    });
+
+    return { success: true, questionCount: questions.length };
+  } catch (error) {
+    // Clear generation status on error
+    await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+      projectId,
+    });
+
+    throw error;
+  }
+}
 
 // Get questions for a project (public)
 export const getByProject = query({
@@ -150,56 +203,17 @@ export const generate = action({
       throw new Error("Project not found");
     }
 
-    // Update project status to show we're generating
-    await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+    // Perform question generation
+    const result = await performQuestionGeneration(ctx, args.projectId, project);
+
+    // Update project status
+    await ctx.runMutation(internal.prdProjects.updateStatusInternal, {
       projectId: args.projectId,
-      stage: "generating_questions",
-      progress: 10,
-      message: "Analyzing your description...",
+      status: "questions",
+      currentStep: 2,
     });
 
-    try {
-      // Generate questions using Claude
-      const questions = await generateQuestions(
-        project.appName,
-        project.appDescription
-      );
-
-      // Update progress
-      await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
-        projectId: args.projectId,
-        stage: "generating_questions",
-        progress: 80,
-        message: "Finalizing questions...",
-      });
-
-      // Save questions to database
-      await ctx.runMutation(internal.questions.save, {
-        projectId: args.projectId,
-        questions,
-      });
-
-      // Update project status
-      await ctx.runMutation(internal.prdProjects.updateStatusInternal, {
-        projectId: args.projectId,
-        status: "questions",
-        currentStep: 2,
-      });
-
-      // Clear generation status
-      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
-        projectId: args.projectId,
-      });
-
-      return { success: true, questionCount: questions.length };
-    } catch (error) {
-      // Clear generation status on error
-      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
-        projectId: args.projectId,
-      });
-
-      throw error;
-    }
+    return result;
   },
 });
 
@@ -235,49 +249,8 @@ export const regenerate = action({
       throw new Error("Not authorized");
     }
 
-    // Update project status to show we're regenerating
-    await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
-      projectId: args.projectId,
-      stage: "generating_questions",
-      progress: 10,
-      message: "Regenerating questions...",
-    });
-
-    try {
-      // Generate new questions using Claude
-      const questions = await generateQuestions(
-        project.appName,
-        project.appDescription
-      );
-
-      // Update progress
-      await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
-        projectId: args.projectId,
-        stage: "generating_questions",
-        progress: 80,
-        message: "Finalizing questions...",
-      });
-
-      // Save questions to database
-      await ctx.runMutation(internal.questions.save, {
-        projectId: args.projectId,
-        questions,
-      });
-
-      // Clear generation status
-      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
-        projectId: args.projectId,
-      });
-
-      return { success: true, questionCount: questions.length };
-    } catch (error) {
-      // Clear generation status on error
-      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
-        projectId: args.projectId,
-      });
-
-      throw error;
-    }
+    // Perform question generation
+    return await performQuestionGeneration(ctx, args.projectId, project);
   },
 });
 
