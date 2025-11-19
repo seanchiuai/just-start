@@ -20,18 +20,8 @@ const techRecommendation = v.object({
 });
 
 export default defineSchema({
-  // Legacy tables
-  numbers: defineTable({
-    value: v.number(),
-  }),
-  todos: defineTable({
-    title: v.string(),
-    description: v.optional(v.string()),
-    status: v.union(v.literal("pending"), v.literal("completed")),
-    userId: v.string(),
-    createdAt: v.number(),
-    completedAt: v.optional(v.number()),
-  }).index("by_user", ["userId"]),
+  // Legacy tables removed
+
 
   // Just Start PRD Generator - Users
   users: defineTable({

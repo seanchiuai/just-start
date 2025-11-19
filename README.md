@@ -160,7 +160,7 @@ npm start
 ├── convex/             # Backend functions and schema
 │   ├── auth.config.ts  # Clerk authentication config
 │   ├── schema.ts       # Database schema
-│   └── myFunctions.ts  # Server functions
+│   └── prd.actions.ts  # Server functions
 ├── public/             # Static assets
 ├── middleware.ts       # Route protection
 └── ...
@@ -182,7 +182,7 @@ Convex provides:
 - Real-time subscriptions
 - Automatic scaling
 
-Define your schema in `convex/schema.ts` and create functions in `convex/myFunctions.ts`.
+Define your schema in `convex/schema.ts` and create functions in `convex/prd.actions.ts` (or other files in the `convex/` directory).
 
 ## 🆘 Troubleshooting
 
