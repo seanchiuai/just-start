@@ -2,6 +2,63 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Documentation Update - Codebase Status Analysis
+
+**Analysis Complete:** Used parallel agents to analyze components, routes, Convex, styles, and config.
+
+**Updated Documentation:**
+
+**component-patterns.md:**
+- Added barrel exports pattern (landing/index.ts)
+- Added Convex query type casting pattern with `as Doc<>[]`
+- Added component status section (all working)
+- Added interface export pattern (FolderNode)
+
+**convex-patterns.md:**
+- Added Node.js runtime separation pattern (prd.ts vs prd.actions.ts)
+- Added progress tracking pattern for AI actions
+- Added current implementation status section
+- Documented legacy tables (todos, numbers) for removal
+- Listed required environment variables
+- Documented AI wrapper files (convex/ai/)
+
+**frontend-architecture.md:**
+- Updated (auth) route group as not implemented
+- Added comprehensive route status section
+- Listed deprecated routes for removal (bookmarks, tasks, search-demo, font-test, server)
+- Noted API routes are unused (Convex-only backend)
+
+**styling-guide.md:**
+- Added Technical Editorial design system documentation
+- Documented ink/paper/gold color palette with RGB values
+- Added typography section (Fraunces, JetBrains Mono)
+- Added custom animations (fade-in, slide-in, scale-in, stagger)
+- Added custom card styles (card-editorial, card-minimal)
+- Noted Tailwind 4 CSS-first configuration
+- Listed incomplete patterns (texture-grain, bg-dotgrid, unused utilities)
+
+**type-definitions.md:**
+- Added Convex query type casting section with examples
+
+**icon-usage.md:**
+- Added deprecation note for @tabler/icons-react
+
+**state-management.md:**
+- Updated Convex query example with type casting pattern
+
+**api-routes-guide.md:**
+- Added status note: no API routes, backend via Convex
+
+**Key Findings:**
+- All components working ✅
+- 5 deprecated routes to remove 🗑️
+- 2 legacy Convex tables to remove (todos, numbers)
+- @tabler/icons-react to remove
+- Type casting needed for some Convex queries
+- Several unused CSS patterns defined but not used
+
+---
+
 ### Integration Phase - Mock Data Replacement
 
 **IMPORTANT: Run `npx convex dev` to regenerate types after pulling these changes.**

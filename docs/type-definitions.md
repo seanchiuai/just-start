@@ -231,6 +231,22 @@ import { Id } from "@/convex/_generated/dataModel";
 const idToUsername: Record<Id<"users">, string> = {};
 ```
 
+### Convex Query Type Casting
+When useQuery type inference fails, use explicit casting:
+```tsx
+import { Doc } from "@/convex/_generated/dataModel";
+
+// Cast query results to proper Doc type
+const projects = useQuery(api.prdProjects.listByUser) as Doc<"prdProjects">[] | undefined;
+const memories = useQuery(api.memory.getUserMemories, { limit: 10 }) as Doc<"userMemory">[] | undefined;
+
+// Use with proper null checks
+if (projects === undefined) return <Loading />;
+if (projects === null) return <NotFound />;
+```
+
+This pattern is used when Convex's generated types don't fully propagate through the API.
+
 ### Array Types
 ```ts
 // Use Array<T> for consistency

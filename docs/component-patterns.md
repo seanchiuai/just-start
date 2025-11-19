@@ -13,6 +13,14 @@ export function MyComponent({ prop1, prop2 }: ComponentProps) {
 }
 ```
 
+### Barrel Exports Pattern
+```tsx
+// components/landing/index.ts
+export * from "./hero-section";
+export * from "./footer";
+// ... all landing components
+```
+
 ### Props Patterns
 ```tsx
 // Interface for props
@@ -46,6 +54,21 @@ function TodoList() {
   if (todos === undefined) return <div>Loading...</div>;
 
   return <div>{/* UI */}</div>;
+}
+```
+
+### Convex Query Type Casting
+When Convex type inference fails, use explicit type casting:
+```tsx
+import { Doc } from "@/convex/_generated/dataModel";
+
+function Dashboard() {
+  // Cast when type inference is incomplete
+  const projects = useQuery(api.prdProjects.listByUser) as Doc<"prdProjects">[] | undefined;
+  const memories = useQuery(api.memory.getUserMemories, { limit: 10 }) as Doc<"userMemory">[] | undefined;
+
+  if (projects === undefined) return <Skeleton />;
+  return <ProjectList projects={projects} />;
 }
 ```
 
@@ -310,4 +333,30 @@ function TechStackCard({
     </Card>
   );
 }
+```
+
+## Component Status
+
+### Working Components
+- All UI components in `components/ui/` - shadcn/ui base
+- All landing components in `components/landing/` - barrel exports via index.ts
+- PRD components: prd-viewer, prd-sections, prd-navigation, prd-actions, export-dropdown, share-dialog
+- Questions: question-card, questions-form, questions-loader
+- Tech Stack: tech-category-card, tech-stack-summary, alternatives-dialog
+- Validation: validation-status, validation-actions, issue-card
+- Project: project-layout, project-card, wizard-layout
+
+### Interface Exports
+Export interfaces when shared across components:
+```tsx
+// components/features/folder-tree-item.tsx
+export interface FolderNode {
+  _id: Id<"folders">;
+  name: string;
+  children: FolderNode[];
+  bookmarkCount: number;
+}
+
+// Then import in other files
+import { FolderNode } from "@/components/features/folder-tree-item";
 ```

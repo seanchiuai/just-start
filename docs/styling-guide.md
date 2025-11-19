@@ -1,13 +1,43 @@
 # Styling Guide (Tailwind 4)
 
-## Color System
+## Technical Editorial Design System
+Current design uses "Technical Editorial" theme with ink/paper/gold palette.
+
+### Core Colors
+```css
+/* Light mode */
+--color-ink: 26 31 46;       /* #1a1f2e - dark blue-gray */
+--color-paper: 250 250 249;  /* #fafaf9 - warm white */
+--color-gold: 201 162 39;    /* #c9a227 - primary accent */
+
+/* Status colors */
+--color-success: 34 197 94;
+--color-warning: 234 179 8;
+--color-critical: 239 68 68;
+--color-info: 59 130 246;
+```
+
+### Typography
+```css
+--font-display: 'Fraunces', serif;     /* Headings */
+--font-body: system-ui, sans-serif;    /* Body text */
+--font-mono: 'JetBrains Mono', monospace; /* Code */
+```
+
+Usage:
+```tsx
+<h1 className="font-display">Heading</h1>
+<code className="font-mono">code</code>
+```
+
+## Semantic Color System
 ```tsx
 // Background
-bg-background      // Main background
-bg-foreground      // Foreground color
+bg-background      // Main background (paper)
+bg-foreground      // Foreground color (ink)
 bg-card           // Card background
 bg-popover        // Popover background
-bg-primary        // Primary color
+bg-primary        // Primary color (gold)
 bg-secondary      // Secondary color
 bg-muted          // Muted background
 bg-accent         // Accent color
@@ -146,5 +176,53 @@ active:scale-95
 - Avoid hardcoded colors
 
 ## Custom Utilities
-- Defined in `tailwind.config.ts`
+- Defined in `app/globals.css` (Tailwind 4 CSS-first config)
 - Use `@apply` sparingly (prefer composition)
+
+## Custom Animations
+```tsx
+// Working animations
+animate-fade-in       // fadeIn 0.4s - widely used
+animate-slide-in      // slideIn 0.5s ease-out
+animate-scale-in      // scaleIn 0.3s ease-out
+animate-fade-in-up    // Technical Editorial specific
+
+// Stagger classes for delayed animations
+stagger-1 through stagger-6
+```
+
+## Custom Card Styles
+```tsx
+// Editorial card style
+<div className="card-editorial">
+  Content
+</div>
+
+// Minimal card style
+<div className="card-minimal">
+  Content
+</div>
+```
+
+## Tailwind 4 Configuration
+- No `tailwind.config.ts` - uses CSS-first approach
+- All theme config in `app/globals.css` via `@theme inline`
+- Import Google Fonts at top of globals.css
+
+## Status
+
+### Working Patterns
+- Core colors (ink/paper/gold)
+- Semantic color tokens
+- Font loading and usage
+- `animate-fade-in`, `animate-slide-in`, `animate-scale-in`
+- `card-editorial`, `card-minimal`
+- Stagger animation classes
+- Dark mode support
+
+### Incomplete Patterns (Defined but unused)
+- `texture-grain` - SVG noise overlay
+- `bg-dotgrid` - Dot grid background
+- `bg-paper-warm` - Warm paper background
+- `animate-typewriter`, `animate-pulse-ring`
+- `text-gold`, `text-success`, `text-warning`, `text-critical`
