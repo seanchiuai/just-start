@@ -1276,6 +1276,7 @@ Convex has the following components:
 # Current Implementation Status
 
 ## Working Tables
+
 - \`users\` - User management with Clerk sync
 - \`prdProjects\` - PRD project tracking
 - \`questionSets\` - AI-generated questions
@@ -1289,16 +1290,20 @@ Convex has the following components:
 - \`bookmarks\` - Bookmarks with vector embeddings
 
 ## Legacy Tables (Consider Removal)
+
 - \`todos\` - Unused demo table
 - \`numbers\` - Unused demo table
 
 ## Required Environment Variables
+
 - \`OPENAI_API_KEY\` - Embeddings, chat
 - \`ANTHROPIC_API_KEY\` - Claude for questions, PRD generation
 - \`PERPLEXITY_API_KEY\` - Tech stack research
 - \`CLERK_WEBHOOK_SECRET\` - Clerk user sync
 
 ## AI Wrapper Files
-- \`convex/ai/claude.ts\` - Claude API for questions, recommendations, compatibility, PRD
-- \`convex/ai/perplexity.ts\` - Perplexity API for tech stack research
 
+\`\`\`
+convex/ai/claude.ts     - Claude API for questions, recommendations, compatibility, PRD
+convex/ai/perplexity.ts - Perplexity API for tech stack research
+\`\`\`
