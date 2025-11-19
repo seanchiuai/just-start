@@ -6,7 +6,7 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    period: "forever",
+    period: "",
     description: "Perfect for trying out Just Start",
     features: [
       "3 PRD generations",
@@ -73,7 +73,9 @@ export function PricingSection() {
                   <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">/{plan.period}</span>
+                    {plan.period && (
+                      <span className="text-muted-foreground">/{plan.period}</span>
+                    )}
                   </div>
                   {plan.annualPrice && (
                     <div className="text-sm text-primary mt-1">

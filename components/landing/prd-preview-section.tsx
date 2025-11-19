@@ -95,6 +95,7 @@ export function PRDPreviewSection() {
               {prdSections.map((section) => (
                 <button
                   key={section.id}
+                  type="button"
                   onClick={() => setActiveTab(section.id)}
                   className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
                     activeTab === section.id
