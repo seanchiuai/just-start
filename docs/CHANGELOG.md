@@ -24,6 +24,7 @@
 **Bug Fixes:**
 - Protected layout: Fixed redirect() during render - now uses useEffect/useRouter
 - New project: Added error logging in catch block
+- ProjectLayout: Fixed conditional React hook - useQuery now called before early returns with 'skip' option
 
 **prd-generator.js:**
 - Added API key validation on startup
