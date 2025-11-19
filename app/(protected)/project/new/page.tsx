@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import Link from "next/link";
 export default function NewProjectPage() {
   const router = useRouter();
   const createProject = useMutation(api.prdProjects.create);
+  const generateQuestions = useAction(api.questions.generate);
 
   const [appName, setAppName] = useState("");
   const [appDescription, setAppDescription] = useState("");
@@ -42,6 +43,10 @@ export default function NewProjectPage() {
         appName: appName.trim(),
         appDescription: appDescription.trim(),
       });
+
+      // Generate questions using Claude AI
+      await generateQuestions({ projectId });
+
       router.push(`/project/${projectId}/questions`);
     } catch (err) {
       console.error("Failed to create project:", err);
@@ -118,7 +123,7 @@ export default function NewProjectPage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
+                      Creating & Generating Questions...
                     </>
                   ) : (
                     "Create Project"

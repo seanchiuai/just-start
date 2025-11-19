@@ -4,6 +4,13 @@
 
 ### Bug Fixes
 
+**CRITICAL: Questions Not Generated After Project Creation:**
+- Fixed missing `generateQuestions` call in `/app/(protected)/project/new/page.tsx`
+- Added `useAction(api.questions.generate)` hook
+- Now calls `generateQuestions({ projectId })` after creating project
+- Updated loading text to "Creating & Generating Questions..."
+- Projects now properly advance from "draft" to "questions" status
+
 **CRITICAL: User Not Found on Project Creation (2412af3):**
 - Fixed user sync issue between Clerk and Convex
 - `prdProjects:create` now auto-creates user from identity data if not found
