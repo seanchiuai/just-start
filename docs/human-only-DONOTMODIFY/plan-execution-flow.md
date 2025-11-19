@@ -1,8 +1,8 @@
-# Plan Execution Flow
+ # Plan Execution Flow
 
 ## Dependency Graph
 
-```
+```text
 plan-01 (Schema) ──┬──────────────────────────────> plan-09 (Landing) ✓ PARALLEL
                    │
                    └── plan-02 (Input) ── plan-03 (Questions) ── plan-04 (Tech Stack)
@@ -29,12 +29,14 @@ plan-01 (Schema) ──┬──────────────────
 ## Parallelization Strategy
 
 ### 2 Engineers
+
 | Engineer | Plans | Order |
 |----------|-------|-------|
 | A | 01 → 02 → 03 → 04 → 05 → 06 → 07 | Sequential wizard flow |
 | B | 09 → 08 | Landing, then progress components |
 
 ### 3 Engineers
+
 | Engineer | Plans | Order |
 |----------|-------|-------|
 | A | 01 → 02 → 03 | Schema, input, questions |
@@ -42,6 +44,7 @@ plan-01 (Schema) ──┬──────────────────
 | C | 09 → 08 | Landing, then progress components |
 
 ### 4 Engineers
+
 | Engineer | Plans | Order |
 |----------|-------|-------|
 | A | 01 → 02 → 03 | Schema (blocks all), input, questions |
@@ -51,12 +54,15 @@ plan-01 (Schema) ──┬──────────────────
 
 ## Critical Path
 
-**plan-01 → plan-02 → plan-03 → plan-04 → plan-05 → plan-06 → plan-07**
+### Sequential Dependencies
+
+plan-01 → plan-02 → plan-03 → plan-04 → plan-05 → plan-06 → plan-07
 
 This is the wizard flow - each step needs data from previous step.
 
 ## Independent Work
 
 After plan-01 completes:
+
 - **plan-09** (landing page) - completely independent, no shared code
 - **plan-08** (progress/real-time) - can build UI components, integrate when wizard steps ready

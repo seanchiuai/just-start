@@ -131,6 +131,7 @@ function Form() {
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -194,7 +195,7 @@ function WizardStep({ projectId, currentStep, totalSteps, onNext, onBack }: Wiza
 ```tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { CheckCircle, Loader2, Circle } from "lucide-react";
 
 interface ProcessingStatusProps {
   stages: string[];
@@ -237,6 +238,10 @@ function ProcessingStatus({ stages, currentStage }: ProcessingStatusProps) {
 
 ### Tech Stack Selection Card
 ```tsx
+import React from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+
 interface TechStackCardProps {
   category: string;
   recommendation: {

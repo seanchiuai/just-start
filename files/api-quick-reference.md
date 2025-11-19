@@ -110,7 +110,7 @@ Headers:
 ### Request
 ```javascript
 {
-  "model": "llama-3.1-sonar-large-128k-online",
+  "model": "sonar-pro",
   "messages": [
     {
       "role": "system",
@@ -173,7 +173,7 @@ Markdown formatted text with:
 ### Request
 ```javascript
 {
-  "model": "llama-3.1-sonar-large-128k-online",
+  "model": "sonar-pro",
   "messages": [
     {
       "role": "system",
@@ -345,7 +345,7 @@ class PRDGenerator {
         'Authorization': `Bearer ${this.perplexityKey}`
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-large-128k-online',
+        model: 'sonar-pro',
         messages: [
           { role: 'system', content: 'You are a helpful tech architecture expert.' },
           { role: 'user', content: prompt }
@@ -385,7 +385,8 @@ class RateLimiter {
     this.requests = this.requests.filter(time => now - time < this.windowMs);
 
     if (this.requests.length >= this.maxRequests) {
-      const oldestRequest = Math.min(...this.requests);
+      // Requests array is maintained in chronological order
+      const oldestRequest = this.requests[0];
       const waitTime = this.windowMs - (now - oldestRequest);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
@@ -465,19 +466,21 @@ describe('PRD Generator', () => {
 
 ## Cost Estimation
 
-### Per PRD Generation
-- **Claude Sonnet** (Steps 1,2,3): ~10K tokens input, ~5K tokens output
-  - Cost: ~$0.05
-- **Claude Opus** (Step 6): ~15K tokens input, ~8K tokens output
-  - Cost: ~$0.50
-- **Perplexity** (Steps 3,5): ~5K tokens total
-  - Cost: ~$0.01
+**Pricing as of November 2025:** Claude Sonnet $3/1M input + $15/1M output; Claude Opus $15/1M input + $75/1M output; Perplexity Sonar $1/1M input+output.
 
-**Total per PRD**: ~$0.56
+### Per PRD Generation
+- **Claude Sonnet** (Steps 1,2,3,4): ~10K tokens input, ~5K tokens output
+  - Cost: (10K × $3/1M) + (5K × $15/1M) = $0.030 + $0.075 = ~$0.105
+- **Claude Opus** (Step 6): ~15K tokens input, ~8K tokens output
+  - Cost: (15K × $15/1M) + (8K × $75/1M) = $0.225 + $0.600 = ~$0.825
+- **Perplexity Sonar** (Steps 3,5): ~5K tokens total
+  - Cost: 5K × $1/1M = ~$0.005
+
+**Total per PRD**: ~$0.935
 
 ### Monthly Estimates
-- 100 PRDs/month: ~$56
-- 1000 PRDs/month: ~$560
+- 100 PRDs/month: ~$94
+- 1000 PRDs/month: ~$935
 
 ---
 

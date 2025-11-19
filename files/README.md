@@ -198,6 +198,8 @@ await limiter.waitForSlot();
 
 ## 💰 Cost Estimation
 
+**Pricing as of November 2025** (API versions: Claude Sonnet 4.5, Claude Opus 4, Perplexity Sonar)
+
 Per PRD generation:
 - Claude Sonnet (Steps 1,2,3,4): ~$0.05
 - Claude Opus (Step 6): ~$0.50
@@ -207,6 +209,8 @@ Per PRD generation:
 Monthly estimates:
 - 100 PRDs: ~$56
 - 1000 PRDs: ~$560
+
+*Note: Prices may change. Verify current costs at [Anthropic Pricing](https://www.anthropic.com/pricing) and [Perplexity Pricing](https://www.perplexity.ai/pricing).*
 
 ## 🔒 Security Best Practices
 

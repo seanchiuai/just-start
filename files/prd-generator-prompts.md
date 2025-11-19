@@ -127,13 +127,6 @@ Return ONLY this JSON structure:
 - `reasoning` must be single string (1-2 sentences)
 
 ### Input Variables
-    "Authentication best practices OAuth JWT 2024"
-  ],
-  "reasoning": "Queries cover frontend framework decision, database selection for social features, payment integration options, real-time infrastructure, and modern auth patterns."
-}
-```
-
-### Input Variables
 - `APP_NAME`: {app_name}
 - `APP_DESCRIPTION`: {app_description}
 - `USER_ANSWERS`: {user_answers}
@@ -743,7 +736,7 @@ Format: Clear sections with rationale for each choice.`;
       'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
     },
     body: JSON.stringify({
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar-pro',
       messages: [
         {
           role: 'system',

@@ -967,13 +967,49 @@ const applicationTables = {
     researchQueries: v.array(v.string()),
     researchResults: v.string(),
     recommendations: v.object({
-      frontend: v.any(),
-      backend: v.any(),
-      database: v.any(),
-      auth: v.any(),
-      hosting: v.any(),
+      frontend: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.optional(v.array(v.string())),
+      }),
+      backend: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.optional(v.array(v.string())),
+      }),
+      database: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.optional(v.array(v.string())),
+      }),
+      auth: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.optional(v.array(v.string())),
+      }),
+      hosting: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.optional(v.array(v.string())),
+      }),
     }),
-    confirmedStack: v.optional(v.any()),
+    confirmedStack: v.optional(v.object({
+      frontend: v.string(),
+      backend: v.string(),
+      database: v.string(),
+      auth: v.string(),
+      hosting: v.string(),
+    })),
   }).index("by_project", ["projectId"]),
 
   // Compatibility validation results
@@ -997,7 +1033,50 @@ const applicationTables = {
   prds: defineTable({
     projectId: v.id("projects"),
     userId: v.string(),
-    content: v.any(), // Full structured JSON PRD
+    content: v.object({
+      overview: v.string(),
+      goals: v.array(v.string()),
+      personas: v.array(v.object({
+        name: v.string(),
+        description: v.string(),
+        needs: v.array(v.string()),
+      })),
+      features: v.object({
+        mvp: v.array(v.object({
+          name: v.string(),
+          description: v.string(),
+          userStories: v.array(v.string()),
+          acceptanceCriteria: v.array(v.string()),
+        })),
+        niceToHave: v.optional(v.array(v.object({
+          name: v.string(),
+          description: v.string(),
+        }))),
+      }),
+      architecture: v.object({
+        techStack: v.object({
+          frontend: v.string(),
+          backend: v.string(),
+          database: v.string(),
+          auth: v.string(),
+          hosting: v.string(),
+        }),
+        systemDesign: v.string(),
+      }),
+      dataModels: v.array(v.object({
+        name: v.string(),
+        fields: v.array(v.object({
+          name: v.string(),
+          type: v.string(),
+        })),
+      })),
+      apiStructure: v.optional(v.array(v.object({
+        endpoint: v.string(),
+        method: v.string(),
+        description: v.string(),
+      }))),
+      uiConsiderations: v.optional(v.string()),
+    }),
     version: v.number(),
     shareToken: v.optional(v.string()),
     shareExpiresAt: v.optional(v.number()),
@@ -1044,10 +1123,33 @@ export const generateQuestions = action({
       }],
     });
 
+    // Parse and validate response
+    const content = response.content[0]?.text;
+    if (!content) {
+      throw new Error("No content in AI response");
+    }
+
+    let questions;
+    try {
+      questions = JSON.parse(content);
+      // Validate structure
+      if (!questions.questions || !Array.isArray(questions.questions)) {
+        throw new Error("Invalid questions structure: missing questions array");
+      }
+      for (const q of questions.questions) {
+        if (!q.id || !q.question || !Array.isArray(q.options) || !q.default) {
+          throw new Error(`Invalid question structure: ${JSON.stringify(q)}`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse AI response:", content);
+      throw new Error(`AI parsing failed: ${error.message}`);
+    }
+
     // Save questions to Convex
     await ctx.runMutation(internal.questions.save, {
       projectId: args.projectId,
-      questions: JSON.parse(response.content[0].text),
+      questions: questions.questions,
     });
   },
 });
@@ -1080,11 +1182,36 @@ export const generatePRD = action({
       }],
     });
 
+    // Parse and validate response
+    const content = response.content[0]?.text;
+    if (!content) {
+      throw new Error("No content in AI response");
+    }
+
+    let prdContent;
+    try {
+      prdContent = JSON.parse(content);
+      // Validate required fields
+      const requiredFields = ['overview', 'goals', 'personas', 'features', 'architecture'];
+      for (const field of requiredFields) {
+        if (!prdContent[field]) {
+          throw new Error(`Missing required field: ${field}`);
+        }
+      }
+      // Validate features structure
+      if (!prdContent.features.mvp || !Array.isArray(prdContent.features.mvp)) {
+        throw new Error("Invalid features structure: missing mvp array");
+      }
+    } catch (error) {
+      console.error("Failed to parse PRD response:", content);
+      throw new Error(`PRD parsing failed: ${error.message}`);
+    }
+
     // Save PRD
     await ctx.runMutation(internal.prds.create, {
       projectId: args.projectId,
       userId: project.userId,
-      content: JSON.parse(response.content[0].text),
+      content: prdContent,
     });
   },
 });

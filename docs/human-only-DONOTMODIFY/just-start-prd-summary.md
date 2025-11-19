@@ -35,23 +35,43 @@ Just Start solves a critical problem: developers and founders rush into coding w
 
 ### ✅ Validated Stack Analysis
 
-**Frontend: Next.js 15 + TypeScript + Tailwind CSS 4 + shadcn/ui**
-- **Perfect fit** because: Server Components reduce bundle size, streaming improves perceived performance during AI processing, built-in SEO helps with discoverability
-- **Watch out for**: Next.js 15 is new (Oct 2024), some third-party libraries may have compatibility issues
+#### Frontend: Next.js 15 + TypeScript + Tailwind CSS 4 + shadcn/ui
 
-**Backend: Convex (real-time database + serverless functions)**
-- **Perfect fit** because: Real-time reactivity automatically updates UI when data changes, TypeScript-first design provides end-to-end type safety, no need to set up REST/GraphQL APIs
-- **Excellent for your use case**: Built-in Clerk integration, automatic scaling, perfect for unstructured PRD data
-- **Watch out for**: Vendor lock-in, requires learning Convex-specific patterns
+##### Perfect fit
+Server Components reduce bundle size, streaming improves perceived performance during AI processing, built-in SEO helps with discoverability
 
-**Authentication: Clerk**
-- **Perfect fit** because: Native Next.js 15 support with async auth() helper, first-class Convex integration via webhooks
-- **Great DX**: Pre-built components, handles all security automatically, free tier covers 10K users
-- **Watch out for**: Some vendor lock-in, costs scale with active users
+##### Watch out for
+Next.js 15 is new (Oct 2024), some third-party libraries may have compatibility issues
 
-**Hosting: Vercel (frontend) + Convex Cloud (backend)**
-- **Perfect fit** because: Zero-config deployment, automatic preview URLs for PRs, both have generous free tiers
-- **Watch out for**: Free tier bandwidth limits (100GB/month on Vercel), costs can scale with traffic
+#### Backend: Convex (real-time database + serverless functions)
+
+##### Perfect fit
+Real-time reactivity automatically updates UI when data changes, TypeScript-first design provides end-to-end type safety, no need to set up REST/GraphQL APIs
+
+##### Excellent for your use case
+Built-in Clerk integration, automatic scaling, perfect for unstructured PRD data
+
+##### Watch out for
+Vendor lock-in, requires learning Convex-specific patterns
+
+#### Authentication: Clerk
+
+##### Perfect fit
+Native Next.js 15 support with async auth() helper, first-class Convex integration via [webhooks](https://docs.convex.dev/auth/clerk)
+
+##### Great DX
+Pre-built components, handles all security automatically, free tier covers 10K users. See [clerk.com](https://clerk.com) for details.
+
+##### Watch out for
+Some vendor lock-in, costs scale with active users
+
+#### Hosting: Vercel (frontend) + Convex Cloud (backend)
+
+##### Perfect fit
+Zero-config deployment, automatic preview URLs for PRs, both have generous free tiers
+
+##### Watch out for
+Free tier bandwidth limits (100GB/month on Vercel), costs can scale with traffic
 
 ### Additional Tools Recommended
 - **AI**: Anthropic Claude (Sonnet 4 + Opus 4) for generation, Perplexity for research
@@ -103,6 +123,33 @@ TechStackRecommendation (research, recommendations, confirmed stack)
 CompatibilityCheck (status, issues, warnings)
 PRD (full JSON document, version, share token)
 ```
+
+### Schema Versioning & Migration Strategy
+
+**PRD Schema Versioning:**
+- Each PRD document includes a `schemaVersion` field (e.g., `v1.0`, `v1.1`)
+- Immutable versioned exports: once generated, PRDs are never modified in place; new versions create new documents
+- Version manifest tracks breaking vs non-breaking schema changes
+
+**Convex Schema Evolution:**
+- Run-once migration scripts in `convex/migrations/` directory for schema updates
+- Feature flags control rollout of new schema features (e.g., `USE_V2_PRD_STRUCTURE`)
+- Backward compatibility rules:
+  - New optional fields default to sensible values
+  - Removed fields are marked as deprecated for 2+ versions before removal
+  - Breaking changes increment major version and trigger migration prompts
+
+**Migration Execution:**
+- Migration metadata stored in `schemaMigrations` table with `{ version, appliedAt, status }`
+- Consumers select PRD version via `preferredSchemaVersion` user setting
+- Auto-upgrade prompts for users on deprecated versions
+- Compatibility tests validate parsers handle both old and new schemas
+
+**Rollback & Safety:**
+- All migrations include rollback scripts
+- Staging environment tests migrations before production
+- Read-only mode during active migrations
+- Automated backups before schema changes
 
 ### Real-time Reactivity
 - User clicks "Generate Questions" → Convex action calls Claude API
@@ -198,7 +245,7 @@ export const generateQuestions = action({
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5-20250929",
         max_tokens: 4096,
         messages: [{
           role: "user",
@@ -228,7 +275,7 @@ export const generateQuestions = action({
 ### Phase 3: Polish & Deploy (Week 5-6)
 **Goal: Production-ready MVP**
 
-- [ ] Add error handling and retry logic to all AI calls
+- [ ] Add error handling and retry logic to all AI calls (see AI Resilience Patterns below)
 - [ ] Implement rate limiting with Upstash Redis
 - [ ] Set up Sentry for error tracking
 - [ ] Add loading states and progress indicators
@@ -238,6 +285,67 @@ export const generateQuestions = action({
 - [ ] Write tests for critical flows
 - [ ] Deploy to Vercel
 - [ ] Set up monitoring and alerts
+
+#### AI Resilience Patterns (convex/ai.ts)
+
+**Implementation Requirements:**
+
+**1. Timeouts:**
+- Per-call timeout: 30s for Claude Sonnet, 60s for Claude Opus, 20s for Perplexity
+- Use `AbortController` with `signal` parameter in fetch calls
+- Throw clear timeout errors for UI handling
+
+**2. Retry Policy:**
+- Max retries: 3 attempts for transient failures (5xx errors, network issues)
+- Exponential backoff: 1s, 2s, 4s delays between retries
+- Jitter: add random 0-500ms to prevent thundering herd
+- No retry for 4xx errors (bad requests, auth failures)
+
+**3. Circuit Breaker:**
+- Track failure rate per provider (Claude, Perplexity) over 5-minute window
+- Open circuit after 5 consecutive failures or >50% error rate
+- Half-open state after 60s cooldown, single test request
+- Close circuit after 3 successful requests in half-open state
+
+**4. Graceful Fallbacks:**
+- Queue failed requests for retry after cooldown (use Convex scheduler)
+- Switch to alternate provider if configured (e.g., GPT-4 fallback for Claude)
+- Return partial results with warning if some steps succeed
+- Store failed requests in `aiRequestFailures` table for manual review
+
+**5. Error Wrapping & User Messages:**
+- Wrap all AI errors in `AIProviderError` class with fields: `{ provider, type, userMessage, technicalDetails }`
+- User-friendly messages: "AI is temporarily unavailable" (not raw API errors)
+- UI state: show retry button, estimated wait time, option to save progress
+- Never expose API keys or internal stack traces to users
+
+**6. Logging & Telemetry:**
+- Log all AI calls with: `{ provider, model, tokensUsed, latency, success, errorType }`
+- Send error events to Sentry with context: `{ projectId, userId, step, prompt }`
+- Track metrics: success rate, p95 latency, cost per request
+- Alert on: >10% error rate, >5s p95 latency, circuit breaker opens
+
+**7. Configuration (Environment Variables):**
+```bash
+AI_TIMEOUT_MS=30000
+AI_MAX_RETRIES=3
+AI_CIRCUIT_BREAKER_THRESHOLD=5
+AI_CIRCUIT_BREAKER_COOLDOWN_MS=60000
+ENABLE_AI_FALLBACK=true
+FALLBACK_PROVIDER=openai
+```
+
+**8. Testing:**
+- Unit tests: mock API failures, verify retry logic, test circuit breaker state transitions
+- Integration tests: test with real APIs in staging, inject failures with chaos engineering
+- Load tests: verify rate limiting and queuing under high traffic
+- Example test: `convex/ai.test.ts` should cover timeout, retry, and circuit breaker scenarios
+
+**9. Wiring into convex/ai.ts:**
+- Wrap all `anthropic.messages.create` and Perplexity API calls with `withResilience(apiCall, options)`
+- Helper function `withResilience` applies timeout, retry, circuit breaker, and logging
+- Store circuit breaker state in Convex `aiCircuitBreaker` table (per provider)
+- Export metrics via `/api/ai-metrics` endpoint for monitoring dashboard
 
 ### Phase 4: Launch (Week 7-8)
 **Goal: Get first users**
