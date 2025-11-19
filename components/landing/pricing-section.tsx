@@ -33,7 +33,7 @@ const plans = [
     ],
     cta: "Start Free Trial",
     popular: true,
-    annualPrice: "$15/mo billed annually",
+    annualPrice: "or $15/mo billed annually",
   },
 ];
 
