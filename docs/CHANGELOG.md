@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased] - 2025-11-19
+
+### Plans
+- Added `plan-10-ui-build.md` - UI build phase for all frontend components
+  - 7 phases: shared, questions, tech stack, validation, PRD, export/sharing, dashboard
+  - ~34 components, estimated 22-29 hours
+
+---
+
 ## [Unreleased] - 2025-11-18
 
 ### Code Quality Fixes
