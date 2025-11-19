@@ -3,684 +3,642 @@
 ## Status: Not Started
 
 ## Overview
-Build all frontend UI components for the PRD generation wizard flow. This plan assumes Plans 1-2 (Schema/Dashboard, App Input) are complete.
+Build all frontend UI components for the PRD generation wizard. **Designed for parallel execution** - each page track can be built independently using mock data, then integrated with Convex backend.
+
+## Prerequisites
+- Plans 01-02 completed (schema, dashboard, new project page)
+- Plan 01 provides schema types for mock data
+
+---
+
+## Parallelization Strategy
+
+### Mock Data Approach
+Each UI track builds components with TypeScript interfaces and mock data. No Convex queries until integration phase. This enables:
+- Multiple engineers working simultaneously
+- UI polish before backend is ready
+- Clear component contracts
+
+### Execution Tracks
+
+```text
+                    ┌── Track A: Questions UI ──────┐
+                    │                               │
+Phase 1 ──────────> ├── Track B: Tech Stack UI ────┤
+(Foundation)        │                               │
+   │                ├── Track C: Validation UI ────┼──> Phase 3
+   │                │                               │   (Integration)
+   │                ├── Track D: PRD UI ───────────┤
+   │                │                               │
+   │                ├── Track E: Dashboard UI ─────┤
+   │                │                               │
+   │                └── Track F: Export/Share UI ──┘
+   │
+   └── Backend Plans (03-07) can run in parallel ──────>
+```
+
+### Engineer Allocation
+
+**2 Engineers:**
+| Engineer | Work |
+|----------|------|
+| A | Phase 1 → Tracks A, B, C |
+| B | Tracks D, E, F → Phase 3 |
+
+**3 Engineers:**
+| Engineer | Work |
+|----------|------|
+| A | Phase 1 → Tracks A, B |
+| B | Tracks C, D |
+| C | Tracks E, F → Phase 3 |
+
+**4 Engineers:**
+| Engineer | Work |
+|----------|------|
+| A | Phase 1 (blocks all) |
+| B | Tracks A, B |
+| C | Tracks C, D |
+| D | Tracks E, F → Phase 3 |
+
+---
 
 ## Design Direction: Technical Editorial
 
-**Concept**: Treat each PRD like a beautifully typeset architectural specification. The interface feels like a premium design publication crossed with engineering precision—sophisticated but purposeful, refined but technical.
+**Concept**: Editorial elegance meets engineering precision. Premium design publication crossed with technical documentation.
 
-**Tone**: Confident, precise, unhurried. This is a tool for people who want to think deeply before building.
+**Typography**: `Fraunces` display + `JetBrains Mono` technical + `system-ui` body
 
-**What makes it unforgettable**: The contrast between editorial elegance and technical precision. Refined typography meets monospace accents. Generous whitespace meets dot-grid textures. Every element says "we take planning seriously."
+**Colors**: Ink/paper/gold accent palette (see CSS variables below)
 
----
+**Textures**: Dot-grid backgrounds, subtle grain overlays
 
-## Design System
+**Motion**: Typewriter effects, staggered reveals, meaningful hover states
 
-### Typography
-
-**Display Font**: `Fraunces` (variable, optical sizing)
-- Headings, hero text, section titles
-- Use optical sizing: `font-optical-sizing: auto`
-- Slightly condensed tracking on large sizes: `tracking-tight`
-
-**Body Font**: `Söhne` or fallback to `system-ui`
-- Clean, readable, professional
-- 16px base, 1.6 line-height for long text
-
-**Technical Font**: `JetBrains Mono`
-- Code snippets, tech stack names, status labels
-- Category badges, step numbers, timestamps
-- Creates visual "technical" moments throughout
-
+### Design Tokens
 ```css
-/* Font setup in globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
+  /* Typography */
   --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Söhne', system-ui, sans-serif;
+  --font-body: system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-}
-```
 
-### Color Palette
-
-**Primary**: Deep slate/navy instead of generic blue
-```css
-:root {
-  --color-ink: #1a1f2e;           /* Primary text, buttons */
-  --color-ink-light: #3d4559;     /* Secondary text */
-  --color-ink-muted: #6b7280;     /* Muted text */
-
-  --color-paper: #fafaf9;         /* Background */
-  --color-paper-warm: #f5f4f0;    /* Cards, sections */
-  --color-paper-dark: #e8e6e1;    /* Borders, dividers */
-
-  --color-accent: #c9a227;        /* Gold/amber - CTAs, highlights */
-  --color-accent-muted: #d4b85a;  /* Hover states */
-
-  --color-success: #2d6a4f;       /* Deep forest green */
-  --color-warning: #b45309;       /* Burnt orange */
-  --color-critical: #9f1239;      /* Deep rose */
-
-  --color-info: #1e40af;          /* Deep blue for info */
-}
-```
-
-**Dark mode**: Invert with warm dark background (#1a1918), cream text (#f5f4f0)
-
-### Texture & Atmosphere
-
-**Dot grid pattern**: Subtle planning/graph paper feel
-```css
-.bg-dotgrid {
-  background-image: radial-gradient(#d4d4d4 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-```
-
-**Noise texture**: Very subtle grain overlay for warmth
-```css
-.texture-grain {
-  position: relative;
-}
-.texture-grain::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('/noise.svg');
-  opacity: 0.03;
-  pointer-events: none;
-}
-```
-
-### Motion Principles
-
-1. **Orchestrated entrances**: Staggered reveals on page load (not random)
-2. **Typewriter effect**: For AI generation status messages
-3. **Smooth morphs**: Progress indicators that transform, not jump
-4. **Meaningful hover**: Cards lift with shadow, buttons pulse subtly
-5. **Exit animations**: Elements fade/slide out before new ones enter
-
-```css
-/* Base transition */
-.transition-default {
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Stagger children */
-.stagger-children > * {
-  animation: fadeInUp 500ms ease-out both;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 75ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 150ms; }
-/* ... continue */
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Colors */
+  --color-ink: #1a1f2e;
+  --color-ink-light: #3d4559;
+  --color-ink-muted: #6b7280;
+  --color-paper: #fafaf9;
+  --color-paper-warm: #f5f4f0;
+  --color-paper-dark: #e8e6e1;
+  --color-accent: #c9a227;
+  --color-accent-muted: #d4b85a;
+  --color-success: #2d6a4f;
+  --color-warning: #b45309;
+  --color-critical: #9f1239;
+  --color-info: #1e40af;
 }
 ```
 
 ---
 
-## Implementation Phases
+## Phase 1: Foundation (BLOCKING)
 
-### Phase 1: Design Foundation
+**Must complete before parallel tracks begin.**
 
-#### 1.0 Global Styles & Tokens
+### 1.1 Global Styles & Tokens
 ```typescript
-// Update globals.css and tailwind.config
+// globals.css + tailwind.config.ts
 - Import fonts (Fraunces, JetBrains Mono)
-- Define CSS custom properties
-- Add texture utilities (bg-dotgrid, texture-grain)
-- Add animation keyframes
-- Define component base styles
+- CSS custom properties
+- Texture utilities (bg-dotgrid, texture-grain)
+- Animation keyframes (fadeInUp, typewriter, pulse)
 ```
 
-#### 1.1 Progress Indicator
+### 1.2 Shared UI Primitives
+```typescript
+// components/ui/
+- Button variants (primary gold, secondary, ghost)
+- Card with paper-warm background
+- Badge (category colors)
+- Progress bar (gold accent)
+- Skeleton loader
+- Copy button with feedback
+```
+
+### 1.3 Progress Indicator
 ```typescript
 // components/features/progress/progress-indicator.tsx
+Props: { currentStep: number; totalSteps: number }
 
-Visual Design:
-- Horizontal timeline with numbered circles
-- Numbers in JetBrains Mono, bold
-- Completed steps: filled ink circle with check
-- Current step: gold accent ring, pulsing subtly
-- Pending steps: hollow circle, muted
-- Connecting lines: dotted, not solid (blueprint feel)
-- Step labels below in small caps
-
-Layout:
-- Desktop: horizontal, full width
-- Mobile: vertical, left-aligned
-- Generous spacing between steps
-
-Animation:
-- Progress line fills as steps complete
-- Current step has subtle pulse animation
-- Numbers morph smoothly on state change
+- Horizontal timeline, numbered circles (JetBrains Mono)
+- Completed: filled ink + check
+- Current: gold ring, pulsing
+- Pending: hollow, muted
+- Dotted connecting lines (blueprint feel)
 ```
 
-#### 1.2 Generation Status Display
+### 1.4 Generation Status Display
 ```typescript
 // components/features/progress/generation-status.tsx
+Props: { stage: string; progress: number; message: string }
 
-Visual Design:
-- Centered, minimal container
-- Large status message in Fraunces italic
-- Typewriter animation for message text
-- Custom loading indicator: three dots that morph into a line
-- Progress bar: thin, gold accent color
-- Estimated time in monospace, small
-
-Animation:
-- Message types out letter by letter
-- Progress bar has subtle shimmer effect
-- Dots pulse in sequence (not sync)
-
-States:
-- Generating: animated dots + typewriter message
-- Complete: checkmark morphs from dots
-- Error: X with shake animation
+- Typewriter animation for message
+- Three-dot loader → morphs to checkmark
+- Thin gold progress bar
+- Monospace estimated time
 ```
 
-#### 1.3 Step Navigation
+### 1.5 Page Layout Shell
 ```typescript
-// components/features/progress/step-navigation.tsx
+// components/features/project/wizard-layout.tsx
+Props: { children; projectName: string; currentStep: number }
 
-Visual Design:
-- Back: text button with arrow, muted color
-- Next/Submit: solid button, gold accent background
-- Buttons have subtle shadow that lifts on hover
-- Loading state: button text fades, spinner appears
-
-Layout:
-- Fixed to bottom on mobile (sticky footer)
-- Right-aligned on desktop
-- Back on left, Next on right
-
-Animation:
-- Hover: lift with shadow increase
-- Click: press down (scale 0.98)
-- Loading: spinner fades in, text fades out
-```
-
-#### 1.4 Page Layout Shell
-```typescript
-// components/features/project/project-layout.tsx
-
-Visual Design:
-- Max-width container with generous padding
-- Subtle dot-grid background
-- Header: project name (Fraunces), step indicator
-- Back link with arrow, top-left
+- Max-width container, dot-grid background
+- Header: project name (Fraunces) + progress indicator
+- Back to dashboard link
 - Content area with paper-warm background
-
-Layout:
-- Desktop: centered, max-w-3xl
-- PRD page: two-column (nav + content)
-- Mobile: full-width with safe padding
 ```
+
+**Effort: 4-5 hours**
 
 ---
 
-### Phase 2: Questions Page
+## Track A: Questions UI (PARALLEL)
 
-#### 2.1 Questions Loader
+### Mock Data
+```typescript
+// lib/mocks/questions.ts
+export const mockQuestions: Question[] = [
+  {
+    id: 1,
+    question: "What is the primary purpose of your app?",
+    options: ["Productivity", "Social", "E-commerce", "Education"],
+    default: "Productivity",
+    category: "features"
+  },
+  // ... 4-5 more
+];
+
+export const mockAnswers: Record<string, string> = {
+  "1": "Productivity",
+  "2": "Small teams"
+};
+```
+
+### Components
+
+#### Questions Loader
 ```typescript
 // components/features/questions/questions-loader.tsx
-
-Visual Design:
 - Three skeleton cards with shimmer
-- Status message center below (typewriter)
-- Subtle floating animation on skeletons
-
-Animation:
-- Cards fade in staggered
-- Shimmer effect across each
-- Message types out with blinking cursor
+- Typewriter status message
+- Staggered fade-in
 ```
 
-#### 2.2 Question Card
+#### Question Card
 ```typescript
 // components/features/questions/question-card.tsx
+Props: { question: Question; value: string; onChange: (v: string) => void }
 
-Visual Design:
-- Paper-warm background, subtle border
-- Category badge: monospace, uppercase, small
-  - Features: ink background
-  - Scale: info blue
-  - Audience: success green
-  - Technical: accent gold
-- Question text: Fraunces, 20px, 1.4 line-height
-- Options: radio circles with custom styling
-  - Unselected: hollow circle, ink border
-  - Selected: filled gold circle with check
-  - Hover: circle fills with muted gold
-- Default option has small "(recommended)" label in monospace
-
-Layout:
-- Full-width card
-- Category badge top-left
-- Question centered or left-aligned
-- Options in vertical stack
-- "Other" input appears on select with slide-down
-
-Animation:
-- Card lifts slightly on hover
-- Selection: circle fills with spring animation
-- "Other" input slides down smoothly
+- Category badge (mono, uppercase, colored by type)
+- Question text (Fraunces, 20px)
+- Custom radio group (gold fill on select)
+- "(recommended)" label on default
+- "Other" option with slide-down input
 ```
 
-#### 2.3 Questions Form
+#### Questions Form
 ```typescript
 // components/features/questions/questions-form.tsx
+Props: { questions: Question[]; onSubmit: (answers) => void }
 
-Visual Design:
-- Vertical stack of question cards
-- Progress: "3 of 5" in monospace, top-right
-- "Use defaults" link: text button, muted
-- Section dividers between cards (thin dotted line)
-
-Layout:
-- Cards have generous vertical spacing (space-y-8)
-- Submit button full-width on mobile
-- Desktop: right-aligned submit
-
-Animation:
-- Cards stagger in on load
-- Answered cards have subtle checkmark appear
+- Vertical stack with space-y-8
+- Progress counter: "3 of 5" (monospace)
+- "Use all defaults" link
+- Submit button (gold)
 ```
 
-#### 2.4 Questions Page
+#### Questions Page (with mock)
 ```typescript
 // app/(protected)/project/[projectId]/questions/page.tsx
-
-Flow:
-1. Mount → check if questions exist
-2. If not, show loader + trigger generation
-3. When ready, fade in form with staggered cards
-4. Submit → loading state → navigate with exit animation
+- Import mockQuestions
+- Render QuestionsForm
+- Console.log on submit (integration later)
 ```
+
+**Effort: 4-5 hours**
 
 ---
 
-### Phase 3: Tech Stack Page
+## Track B: Tech Stack UI (PARALLEL)
 
-#### 3.1 Research Loader
+### Mock Data
+```typescript
+// lib/mocks/tech-stack.ts
+export const mockRecommendations: TechStackRecommendations = {
+  frontend: {
+    technology: "Next.js 15",
+    reasoning: "Best for SEO and server components...",
+    pros: ["Server Components", "Great DX", "Vercel integration"],
+    cons: ["Learning curve", "Newer ecosystem"],
+    alternatives: ["Remix", "Nuxt"]
+  },
+  backend: { /* ... */ },
+  database: { /* ... */ },
+  auth: { /* ... */ },
+  hosting: { /* ... */ }
+};
+```
+
+### Components
+
+#### Research Loader
 ```typescript
 // components/features/tech-stack/research-loader.tsx
-
-Visual Design:
-- Vertical timeline of research steps
-- Each step: dot + label + status
-- Current step: gold dot, pulsing
-- Completed: checkmark replaces dot
-- Pending: hollow dot
-
-Animation:
-- Timeline draws down as steps complete
-- Dots transform into checkmarks
-- Labels fade in as steps begin
-- Shimmer on current step
+- Vertical timeline of steps
+- Gold dot pulsing on current
+- Checkmarks replace dots on complete
+- Timeline draws down progressively
 ```
 
-#### 3.2 Tech Category Card
+#### Tech Category Card
 ```typescript
 // components/features/tech-stack/tech-category-card.tsx
+Props: { category: string; recommendation: TechRecommendation; onChangeClick: () => void }
 
-Visual Design:
-- Category name: monospace, uppercase, letter-spaced
-- Technology name: Fraunces, large (24px)
-- Reasoning: body text, 2-3 lines max
-- Expandable sections:
-  - "Why this works" (pros): success green bullets
-  - "Consider" (cons): warning orange bullets
-- "Change" button: text button, right-aligned
-
-Layout:
-- Card with generous padding
-- Logo/icon left of tech name (if available)
-- Pros/cons in two columns on desktop
-- Change button bottom-right
-
-Animation:
-- Expand/collapse: smooth height transition
-- Hover: subtle lift
-- Change button: underline slides in on hover
+- Category: monospace, uppercase
+- Tech name: Fraunces, 24px
+- Reasoning: 2-3 lines
+- Expandable pros (green) / cons (orange)
+- "Change" text button
 ```
 
-#### 3.3 Alternatives Dialog
+#### Alternatives Dialog
 ```typescript
 // components/features/tech-stack/alternatives-dialog.tsx
+Props: { category: string; alternatives: string[]; onSelect: (tech: string) => void }
 
-Visual Design:
-- Modal with paper-warm background
-- Title: "Alternative for [Category]" in Fraunces
-- Options as horizontal cards (or vertical on mobile)
-- Each option:
-  - Tech name in monospace
-  - Key differentiator
-  - "Select" button
-- Compatibility warnings in warning color
-
-Animation:
-- Modal fades in, content slides up
-- Options stagger in
-- Selected option: gold border appears
+- Modal with paper background
+- Options as cards with key differentiator
+- Compatibility warnings (warning color)
 ```
 
-#### 3.4 Tech Stack Summary
+#### Tech Stack Summary
 ```typescript
 // components/features/tech-stack/tech-stack-summary.tsx
+Props: { stack: ConfirmedStack; onConfirm: () => void }
 
-Visual Design:
-- Grid of tech selections (2x3 on desktop)
-- Each cell: category (mono, small) + tech name
-- Subtle connecting lines between related items
-- "Confirm" CTA: large, gold, centered below
-
-Layout:
-- Visual diagram/flowchart feel
-- Shows relationships (Frontend → Backend → Database)
-
-Animation:
-- Grid draws in with connections
-- Hover on cell highlights related items
+- Grid layout (2x3 desktop)
+- Visual connections between items
+- "Confirm Stack" gold CTA
 ```
+
+#### Tech Stack Page (with mock)
+```typescript
+// app/(protected)/project/[projectId]/tech-stack/page.tsx
+- Import mockRecommendations
+- Manage local state for selections
+- Render cards + summary
+```
+
+**Effort: 5-6 hours**
 
 ---
 
-### Phase 4: Validation Page
+## Track C: Validation UI (PARALLEL)
 
-#### 4.1 Validation Loader
+### Mock Data
+```typescript
+// lib/mocks/validation.ts
+export const mockValidationResult: CompatibilityCheck = {
+  status: "warnings",
+  issues: [
+    {
+      severity: "warning",
+      component: "Database",
+      issue: "Convex requires specific Node.js version",
+      recommendation: "Ensure Node 18+ in production"
+    },
+    {
+      severity: "info",
+      component: "Auth",
+      issue: "Clerk webhook needs configuration",
+      recommendation: "Set up webhook in Clerk dashboard"
+    }
+  ],
+  summary: "2 warnings found. Review before proceeding."
+};
+```
+
+### Components
+
+#### Validation Loader
 ```typescript
 // components/features/validation/validation-loader.tsx
-
-Visual Design:
-- Circular progress indicator (not bar)
-- Center: percentage in large monospace
-- Ring fills with gold as progress increases
-- Status message below (typewriter)
-
-Animation:
-- Ring fills smoothly
-- Percentage counts up
-- Checkmark appears in center when complete
+- Circular progress (not bar)
+- Large monospace percentage in center
+- Gold ring fills
+- Typewriter status below
 ```
 
-#### 4.2 Validation Status Banner
+#### Validation Status Banner
 ```typescript
 // components/features/validation/validation-status.tsx
+Props: { status: "approved" | "warnings" | "critical"; summary: string; counts: Record<string, number> }
 
-Visual Design:
-- Full-width banner at top
-- Approved: success green background, check icon
-- Warnings: warning orange background, alert icon
-- Critical: critical rose background, X icon
-- Large status text: Fraunces
-- Summary below in body text
-- Issue counts in monospace badges
-
-Animation:
-- Banner slides down from top
-- Icon has subtle bounce on appear
-- Success: confetti particles (subtle, few)
+- Full-width banner
+- Approved: green + check
+- Warnings: orange + alert
+- Critical: rose + X
+- Status text (Fraunces), summary, counts (mono badges)
 ```
 
-#### 4.3 Issue Card
+#### Issue Card
 ```typescript
 // components/features/validation/issue-card.tsx
+Props: { issue: Issue }
 
-Visual Design:
-- Left border color indicates severity
-- Severity badge: monospace, uppercase
-- Component tag: pill shape, muted background
-- Issue title: semibold
-- Recommendation: indented, muted text
-- Expandable "Details" section
-
-Layout:
-- Compact by default
-- Expand to show full recommendation
-- Actions (if any) at bottom-right
-
-Animation:
-- Slide in from left (staggered)
-- Expand/collapse smooth
+- Left border color by severity
+- Severity badge (mono, uppercase)
+- Component pill
+- Issue title + recommendation
+- Expandable details
 ```
 
-#### 4.4 Validation Actions
+#### Validation Actions
 ```typescript
 // components/features/validation/validation-actions.tsx
+Props: { status; onProceed; onModify }
 
-Visual Design:
-- Approved: single "Generate PRD" button (gold, large)
-- Warnings: checkbox acknowledgment + proceed button
-  - Checkbox: custom styled, gold when checked
-  - "I understand the warnings" label
-- Critical: "Modify Stack" button only (outline style)
-
-Animation:
-- Buttons fade in after banner
-- Checkbox: checkmark draws in when clicked
+- Approved: "Generate PRD" (gold)
+- Warnings: checkbox + "Proceed anyway"
+- Critical: "Modify Stack" only
 ```
+
+#### Validation Page (with mock)
+```typescript
+// app/(protected)/project/[projectId]/validation/page.tsx
+- Import mockValidationResult
+- Show banner + issues + actions
+```
+
+**Effort: 3-4 hours**
 
 ---
 
-### Phase 5: PRD Page
+## Track D: PRD UI (PARALLEL)
 
-#### 5.1 PRD Loader
+### Mock Data
+```typescript
+// lib/mocks/prd.ts
+export const mockPRD: PRDContent = {
+  projectOverview: {
+    productName: "TaskFlow",
+    description: "A collaborative task management app...",
+    targetAudience: "Small development teams..."
+  },
+  purposeAndGoals: { /* ... */ },
+  userPersonas: [ /* ... */ ],
+  techStack: { /* ... */ },
+  features: {
+    mvpFeatures: [ /* ... */ ],
+    niceToHaveFeatures: [ /* ... */ ],
+    outOfScope: [ /* ... */ ]
+  },
+  technicalArchitecture: { /* ... */ },
+  uiUxConsiderations: { /* ... */ }
+};
+```
+
+### Components
+
+#### PRD Loader
 ```typescript
 // components/features/prd/prd-loader.tsx
-
-Visual Design:
-- Document skeleton: looks like PRD structure
-- Animated typing lines in each section
+- Document skeleton (mimics PRD structure)
+- Typing lines animate in sections
 - Section headers visible, content shimmers
-- Progress bar at bottom: thin, gold
-
-Animation:
-- Sections reveal top-to-bottom
-- Typing lines animate sequentially
-- "Materializing" effect as content appears
+- Progress bar at bottom
 ```
 
-#### 5.2 PRD Navigation Sidebar
+#### PRD Navigation
 ```typescript
 // components/features/prd/prd-navigation.tsx
+Props: { sections: string[]; activeSection: string; onNavigate: (s: string) => void }
 
-Visual Design:
-- Sticky sidebar, left side
-- Section numbers: monospace, muted
-- Section names: body font
-- Current section: ink color, dot indicator
-- Hover: underline slides in
-- Subtle dotted line connecting items
-
-Layout:
-- Desktop: fixed sidebar
-- Mobile: horizontal scrolling tabs at top
-
-Animation:
-- Current indicator slides between items
-- Smooth scroll on click
+- Sticky sidebar
+- Section numbers (mono) + names
+- Current: ink color + dot indicator
+- Dotted line connecting items
+- Mobile: horizontal tabs
 ```
 
-#### 5.3 PRD Section Components
+#### PRD Sections
 ```typescript
 // components/features/prd/sections/*.tsx
+Each section component:
+- Section number: large mono, muted ("01")
+- Title: Fraunces, 28px
+- Content: formatted, generous line-height
+- Copy button appears on hover
 
-Visual Design:
-- Section number: large, monospace, muted (like "01")
-- Section title: Fraunces, 28px
-- Content: well-formatted, generous line-height
-- Lists: custom bullets (squares or dashes)
-- Code/tech terms: monospace, muted background
-- Copy button: appears on hover, top-right
-
-Specific sections:
-- User Personas: cards with name, description
-- Features: cards with priority badges
-- Architecture: diagram-like presentation
-- Data Models: table or structured list
-
-Animation:
-- Sections fade in as scrolled into view
-- Copy button: checkmark replaces icon briefly
+Specific:
+- user-personas.tsx: persona cards
+- features-list.tsx: cards with priority badges
+- architecture.tsx: diagram-like layout
+- data-models.tsx: structured tables
 ```
 
-#### 5.4 PRD Viewer
+#### PRD Viewer
 ```typescript
 // components/features/prd/prd-viewer.tsx
+Props: { prd: PRDContent }
 
-Visual Design:
-- Two-column layout: nav (240px) + content
-- Content area: paper-warm, document-like
-- Subtle page shadow for depth
-- Print button reveals print-optimized styles
-
-Layout:
-- Full-height layout
-- Content scrolls, nav sticky
-- Mobile: single column, nav becomes tabs
+- Two-column: nav (240px) + content
+- Paper-warm content area
+- Smooth scroll between sections
+- Mobile: single column
 ```
 
-#### 5.5 PRD Actions Bar
+#### PRD Actions Bar
 ```typescript
 // components/features/prd/prd-actions.tsx
+Props: { onExport; onShare }
 
-Visual Design:
-- Floating bar, bottom-right (or top-right)
-- Semi-transparent background with blur
-- Icon buttons: Export, Share, Download All
-- Tooltips on hover
-
-Animation:
-- Bar slides in after PRD loads
-- Buttons have hover lift
-- Dropdown menus fade in
+- Floating bar, semi-transparent blur
+- Icon buttons with tooltips
+- Export, Share, Download All
 ```
+
+#### PRD Page (with mock)
+```typescript
+// app/(protected)/project/[projectId]/prd/page.tsx
+- Import mockPRD
+- Render PRD viewer + actions
+```
+
+**Effort: 6-7 hours**
 
 ---
 
-### Phase 6: Export & Sharing
+## Track E: Dashboard UI (PARALLEL)
 
-#### 6.1 Export Dropdown
+### Mock Data
+```typescript
+// lib/mocks/projects.ts
+export const mockProjects: Project[] = [
+  {
+    _id: "1",
+    appName: "TaskFlow",
+    appDescription: "Collaborative task management...",
+    status: "completed",
+    currentStep: 5,
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 3600000,
+    lastAccessedAt: Date.now() - 3600000
+  },
+  {
+    _id: "2",
+    appName: "FitTrack",
+    status: "questions",
+    currentStep: 2,
+    // ...
+  }
+];
+```
+
+### Components
+
+#### Project Card
+```typescript
+// components/features/project/project-card.tsx
+Props: { project: Project; onContinue; onDelete }
+
+- Paper-warm card
+- Name: Fraunces, truncated
+- Description: 2 lines, muted
+- Status pill (colored)
+- Small progress indicator
+- "Continue" button (gold)
+- Delete icon on hover
+- Timestamp (mono)
+```
+
+#### Empty Dashboard
+```typescript
+// components/features/project/empty-dashboard.tsx
+Props: { onCreateFirst: () => void }
+
+- Centered, minimal
+- Line illustration (compass/blueprint)
+- Welcome message (Fraunces)
+- "Start your first project" CTA (gold)
+- Brief value props (3 icons)
+- SVG line-draw animation
+```
+
+#### Dashboard Header
+```typescript
+// components/features/project/dashboard-header.tsx
+Props: { stats: { total: number; inProgress: number }; onNewProject: () => void }
+
+- "Your Projects" (Fraunces)
+- Stats inline (mono)
+- "New Project" button (gold)
+```
+
+#### Dashboard Page (enhance existing)
+```typescript
+// app/(protected)/dashboard/page.tsx
+- Use mockProjects for development
+- Grid layout (2 col desktop)
+- Staggered card entrance
+```
+
+**Effort: 3-4 hours**
+
+---
+
+## Track F: Export & Share UI (PARALLEL)
+
+### Components
+
+#### Export Dropdown
 ```typescript
 // components/features/prd/export-dropdown.tsx
+Props: { onExport: (format: string) => void }
 
-Visual Design:
-- Dropdown with paper background
-- Options: icon + format name + file size estimate
-- Loading: spinner replaces icon
-- Success: checkmark + "Downloaded"
-
-Animation:
-- Dropdown fades down
-- Items stagger in
-- Loading spinner smooth rotation
+- Dropdown menu
+- Options: JSON, Markdown, PDF (with icons)
+- File size estimates
+- Loading spinner per format
+- Success checkmark
 ```
 
-#### 6.2 Share Dialog
+#### Share Dialog
 ```typescript
 // components/features/prd/share-dialog.tsx
+Props: { shareUrl?: string; onGenerate; onRevoke }
 
-Visual Design:
-- Modal with generous padding
-- "Share your PRD" title in Fraunces
-- Generated URL in monospace, truncated
-- Copy button: prominent, gold
-- Expiration: "Expires in 7 days" with date
-- Revoke: text button, warning color
-
-Animation:
-- URL types out when generated
-- Copy: button transforms to "Copied!"
+- Modal with padding
+- "Share your PRD" (Fraunces)
+- Generated URL (mono, truncated)
+- Copy button (gold)
+- Expiration info
+- Revoke option (warning text)
+- URL types out on generate
 ```
 
-#### 6.3 Share Page (Public)
+#### Share Page
 ```typescript
 // app/share/[token]/page.tsx
 
-Visual Design:
-- Minimal branding header: "Just Start" logo
-- PRD viewer (read-only, no actions)
-- Footer CTA: "Create your own PRD →"
-- Expired state: large message, CTA to homepage
-
-Layout:
-- Centered, slightly narrower than auth'd view
-- Clean, no navigation distractions
+- Public route
+- Minimal header with logo
+- Read-only PRD viewer
+- Footer CTA: "Create your own"
+- Expired/invalid states
 ```
+
+**Effort: 3-4 hours**
 
 ---
 
-### Phase 7: Dashboard
+## Phase 3: Integration (AFTER PARALLEL TRACKS + BACKEND)
 
-#### 7.1 Project Card
+### Connect Convex Queries
+Replace mock data imports with real Convex hooks:
+
 ```typescript
-// components/features/project/project-card.tsx
+// Before (mock)
+import { mockQuestions } from "@/lib/mocks/questions";
+const questions = mockQuestions;
 
-Visual Design:
-- Paper-warm card with subtle shadow
-- Project name: Fraunces, truncated
-- Description: 2 lines max, muted
-- Status: pill badge with status color
-- Progress: small step indicator
-- "Continue" button: gold, right side
-- Delete: icon button, appears on hover
-- Timestamp: monospace, small
-
-Layout:
-- Grid of cards (2 col desktop, 1 col mobile)
-- Cards have consistent height
-
-Animation:
-- Hover: lift with shadow
-- Delete icon fades in
-- Cards stagger in on load
+// After (real)
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+const questions = useQuery(api.questions.getByProject, { projectId });
 ```
 
-#### 7.2 Empty Dashboard
-```typescript
-// components/features/project/empty-dashboard.tsx
+### Integration Tasks
+- [ ] Questions page: `api.questions.getByProject`, `api.questions.saveAnswers`
+- [ ] Tech Stack page: `api.techStack.getByProject`, `api.techStack.confirm`
+- [ ] Validation page: `api.compatibility.getByProject`
+- [ ] PRD page: `api.prd.getByProject`, `api.prd.generate`
+- [ ] Dashboard: `api.prdProjects.listByUser`
+- [ ] Export: `api.prd.exportJSON`, `api.prd.exportMarkdown`
+- [ ] Share: `api.prd.createShareLink`, `api.prd.getShared`
 
-Visual Design:
-- Centered content
-- Large illustration: minimal line drawing (compass, blueprint)
-- Welcome message: Fraunces, warm
-- "Start your first project" CTA: gold, large
-- Brief value props below (3 icons + text)
+### Error Handling
+- Add loading states (already built with loaders)
+- Add error boundaries
+- Add retry logic for failed queries
+- Add optimistic updates for mutations
 
-Animation:
-- Illustration draws in (SVG line animation)
-- Text fades up
-- CTA pulses subtly
-```
+### Real-time Updates
+- Wire up `generationStatus` subscriptions
+- Progress updates during AI processing
 
-#### 7.3 Dashboard Header
-```typescript
-// components/features/project/dashboard-header.tsx
-
-Visual Design:
-- "Your Projects" title: Fraunces
-- Stats inline: "3 PRDs generated" in monospace
-- "New Project" button: gold, right-aligned
-
-Layout:
-- Full width, space-between
-- Stats wrap on mobile
-```
+**Effort: 4-5 hours**
 
 ---
 
@@ -708,44 +666,32 @@ Layout:
 
 ---
 
-## Testing Checklist
+## Effort Summary
 
-### Visual Quality
-- [ ] Typography hierarchy is clear and beautiful
-- [ ] Colors create appropriate mood/contrast
-- [ ] Spacing feels generous and intentional
-- [ ] Animations are smooth, not jarring
-- [ ] Dark mode maintains character
-- [ ] Print styles work for PRD
+| Phase/Track | Effort | Can Parallel |
+|-------------|--------|--------------|
+| Phase 1: Foundation | 4-5 hrs | No (blocking) |
+| Track A: Questions | 4-5 hrs | Yes |
+| Track B: Tech Stack | 5-6 hrs | Yes |
+| Track C: Validation | 3-4 hrs | Yes |
+| Track D: PRD | 6-7 hrs | Yes |
+| Track E: Dashboard | 3-4 hrs | Yes |
+| Track F: Export/Share | 3-4 hrs | Yes |
+| Phase 3: Integration | 4-5 hrs | After tracks |
 
-### Functionality
-(Same as before - all pages load, forms work, etc.)
-
----
-
-## Estimated Effort
-
-| Phase | Focus | Effort |
-|-------|-------|--------|
-| Phase 1 | Foundation + Progress | 4-5 hours |
-| Phase 2 | Questions UI | 4-5 hours |
-| Phase 3 | Tech Stack UI | 5-6 hours |
-| Phase 4 | Validation UI | 3-4 hours |
-| Phase 5 | PRD Viewer | 6-7 hours |
-| Phase 6 | Export/Sharing | 3-4 hours |
-| Phase 7 | Dashboard | 3-4 hours |
-
-**Total: ~28-35 hours**
+**Total: ~33-40 hours**
+**With 4 parallel engineers: ~12-15 hours elapsed**
 
 ---
 
 ## Design Principles Checklist
 
-Before marking any component complete, verify:
+Before marking any component complete:
 
-- [ ] **Typography**: Uses Fraunces for display, JetBrains Mono for technical elements
-- [ ] **Color**: Uses ink/paper/accent palette, not generic blue/gray
-- [ ] **Texture**: Has appropriate dot-grid or grain texture where fitting
-- [ ] **Motion**: Has intentional entrance animation, meaningful hover states
-- [ ] **Hierarchy**: Clear visual priority, nothing fights for attention
-- [ ] **Character**: Feels like "Just Start", not generic SaaS
+- [ ] Uses Fraunces for display, JetBrains Mono for technical
+- [ ] Uses ink/paper/accent palette
+- [ ] Has dot-grid or grain texture where fitting
+- [ ] Has entrance animation, meaningful hover
+- [ ] Clear visual hierarchy
+- [ ] Feels like "Just Start", not generic SaaS
+- [ ] Works with mock data (no Convex dependency)
