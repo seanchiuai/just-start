@@ -3,12 +3,18 @@
 ## [Unreleased] - 2025-11-19
 
 ### Plans
-- Enhanced `plan-10-ui-build.md` with "Technical Editorial" design system
-  - Typography: Fraunces display + JetBrains Mono technical
-  - Colors: ink/paper/gold accent palette (not generic blue)
-  - Textures: dot-grid backgrounds, grain overlays
-  - Motion: typewriter effects, staggered reveals, orchestrated entrances
-  - 7 phases, ~34 components, estimated 28-35 hours
+- Restructured `plan-10-ui-build.md` for parallel execution
+  - Mock data approach: UI builds without Convex dependency
+  - 6 parallel tracks (A-F) after foundation phase
+  - Integration phase syncs UI with backend
+  - 4 engineers: ~12-15 hours elapsed (vs ~33-40 sequential)
+  - Design system: Fraunces + JetBrains Mono, ink/paper/gold palette
+
+- Updated `plan-execution-flow.md` with new parallel strategy
+  - Plans 01-02 marked complete (not tested)
+  - UI stream, Backend stream, Landing page all run in parallel
+  - Backend is critical path (~21-25 hours)
+  - Engineer allocation tables for 2-5+ engineers
 
 ---
 
