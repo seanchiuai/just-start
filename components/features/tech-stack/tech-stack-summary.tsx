@@ -3,7 +3,7 @@
 import { Layout, Server, Database, Shield, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TechCategory } from "@/lib/mocks/tech-stack";
+import { TechCategory } from "@/lib/types/prd";
 
 interface TechStackSummaryProps {
   stack: Record<TechCategory, string>;

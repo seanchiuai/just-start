@@ -2,6 +2,7 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import OpenAI from "openai";
 import { api } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
 
 // Configurable OpenAI parameters with validation
 const DEFAULT_MODEL = "gpt-4o-mini";
@@ -81,7 +82,7 @@ export const getChatResponse = action({
 
     // Build context with sanitized memory values
     const memoriesContext = userMemories
-      .map((m) => `${m.key}: ${sanitizeMemoryValue(m.value)}`)
+      .map((m: Doc<"userMemory">) => `${m.key}: ${sanitizeMemoryValue(m.value)}`)
       .join("\n");
 
     // System prompt (simplified without bookmark context for now)

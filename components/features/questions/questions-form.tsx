@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { QuestionCard } from "./question-card";
-import { Question } from "@/lib/mocks/questions";
+import { Question } from "@/lib/types/prd";
 
 interface QuestionsFormProps {
   questions: Question[];

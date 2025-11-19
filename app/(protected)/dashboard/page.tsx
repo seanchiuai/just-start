@@ -133,7 +133,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   const user = useQuery(api.users.getCurrentUser);
-  const projects = useQuery(api.prdProjects.listByUser);
+  const projects = useQuery(api.prdProjects.listByUser) as Doc<"prdProjects">[] | undefined;
 
   const isLoading = user === undefined || projects === undefined;
 

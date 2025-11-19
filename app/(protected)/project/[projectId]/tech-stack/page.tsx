@@ -1,34 +1,50 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { TechCategoryCard } from "@/components/features/tech-stack/tech-category-card";
 import { AlternativesDialog } from "@/components/features/tech-stack/alternatives-dialog";
 import { TechStackSummary } from "@/components/features/tech-stack/tech-stack-summary";
-import {
-  mockRecommendations,
-  TechCategory,
-  TechStackRecommendations,
-} from "@/lib/mocks/tech-stack";
+import { TechStackSkeleton } from "@/components/ui/query-loader";
+import { TechCategory } from "@/lib/types/prd";
 
 export default function TechStackPage() {
   const router = useRouter();
+  const params = useParams();
+  const projectId = params.projectId as Id<"prdProjects">;
 
-  // Mock project data - will be replaced with Convex query during integration
-  const mockProject = {
-    appName: "TaskFlow",
-    currentStep: 3,
-  };
+  // Fetch project and tech stack data
+  const project = useQuery(api.prdProjects.get, { projectId });
+  const techStack = useQuery(api.techStack.getByProject, { projectId });
+
+  // Confirm mutation
+  const confirmStack = useMutation(api.techStack.confirm);
 
   // Track selected technologies
   const [selections, setSelections] = useState<Record<TechCategory, string>>({
-    frontend: mockRecommendations.frontend.technology,
-    backend: mockRecommendations.backend.technology,
-    database: mockRecommendations.database.technology,
-    auth: mockRecommendations.auth.technology,
-    hosting: mockRecommendations.hosting.technology,
+    frontend: "",
+    backend: "",
+    database: "",
+    auth: "",
+    hosting: "",
   });
+
+  // Initialize selections from techStack when available
+  useEffect(() => {
+    if (techStack?.recommendations) {
+      setSelections({
+        frontend: techStack.recommendations.frontend.technology,
+        backend: techStack.recommendations.backend.technology,
+        database: techStack.recommendations.database.technology,
+        auth: techStack.recommendations.auth.technology,
+        hosting: techStack.recommendations.hosting.technology,
+      });
+    }
+  }, [techStack?.recommendations]);
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,20 +66,60 @@ export default function TechStackPage() {
     }
   };
 
-  const handleConfirm = () => {
-    // Log for development - will be replaced with Convex mutation
-    console.log("Confirmed stack:", selections);
-
-    // Navigate to validation
-    // router.push(`/project/${projectId}/validation`);
+  const handleConfirm = async () => {
+    try {
+      await confirmStack({ projectId, confirmedStack: selections });
+      router.push(`/project/${projectId}/validation`);
+    } catch (error) {
+      console.error("Failed to confirm stack:", error);
+    }
   };
 
-  const categories = Object.keys(mockRecommendations) as TechCategory[];
+  // Loading state
+  if (project === undefined || techStack === undefined) {
+    return (
+      <WizardLayout projectName="Loading..." currentStep={3}>
+        <TechStackSkeleton />
+      </WizardLayout>
+    );
+  }
+
+  // Error state
+  if (project === null) {
+    return (
+      <WizardLayout projectName="Error" currentStep={3}>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-destructive">
+              Project not found or you don&apos;t have access to it.
+            </p>
+          </div>
+        </div>
+      </WizardLayout>
+    );
+  }
+
+  // No tech stack data
+  if (techStack === null) {
+    return (
+      <WizardLayout projectName={project.appName} currentStep={project.currentStep}>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-destructive">
+              Tech stack recommendations not found. Please complete the previous steps.
+            </p>
+          </div>
+        </div>
+      </WizardLayout>
+    );
+  }
+
+  const categories = Object.keys(techStack.recommendations) as TechCategory[];
 
   return (
     <WizardLayout
-      projectName={mockProject.appName}
-      currentStep={mockProject.currentStep}
+      projectName={project.appName}
+      currentStep={project.currentStep}
     >
       <div className="space-y-6">
         <div>
@@ -82,7 +138,7 @@ export default function TechStackPage() {
             <TechCategoryCard
               key={category}
               category={category}
-              recommendation={mockRecommendations[category]}
+              recommendation={techStack.recommendations[category]}
               onChangeClick={() => handleChangeClick(category)}
             />
           ))}
@@ -101,7 +157,7 @@ export default function TechStackPage() {
           }
           alternatives={
             selectedCategory
-              ? mockRecommendations[selectedCategory].alternatives
+              ? techStack.recommendations[selectedCategory].alternatives
               : []
           }
           onSelect={handleSelectAlternative}

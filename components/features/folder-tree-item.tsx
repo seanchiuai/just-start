@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface FolderNode extends Doc<"folders"> {
+export interface FolderNode extends Doc<"folders"> {
   children: FolderNode[];
   bookmarkCount: number;
 }

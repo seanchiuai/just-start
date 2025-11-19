@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import {
   ValidationStatus as ValidationStatusType,
   ValidationSeverity,
-  statusConfig,
-} from "@/lib/mocks/validation";
+  validationStatusConfig,
+} from "@/lib/types/prd";
 
 interface ValidationStatusProps {
   status: ValidationStatusType;
@@ -26,7 +26,7 @@ export function ValidationStatus({
   summary,
   counts,
 }: ValidationStatusProps) {
-  const config = statusConfig[status];
+  const config = validationStatusConfig[status];
   const Icon = statusIcons[status];
 
   return (
@@ -60,21 +60,21 @@ export function ValidationStatus({
           <p className="mt-1 text-sm text-muted-foreground">{summary}</p>
 
           {/* Issue counts */}
-          {(counts.info > 0 || counts.warning > 0 || counts.critical > 0) && (
+          {(counts.low > 0 || counts.moderate > 0 || counts.critical > 0) && (
             <div className="flex gap-2 mt-3">
               {counts.critical > 0 && (
                 <Badge variant="secondary" className="bg-critical/20 text-critical font-mono text-xs">
                   {counts.critical} critical
                 </Badge>
               )}
-              {counts.warning > 0 && (
+              {counts.moderate > 0 && (
                 <Badge variant="secondary" className="bg-warning/20 text-warning font-mono text-xs">
-                  {counts.warning} warning
+                  {counts.moderate} moderate
                 </Badge>
               )}
-              {counts.info > 0 && (
+              {counts.low > 0 && (
                 <Badge variant="secondary" className="bg-info/20 text-info font-mono text-xs">
-                  {counts.info} info
+                  {counts.low} low
                 </Badge>
               )}
             </div>

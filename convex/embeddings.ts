@@ -2,6 +2,7 @@ import { action } from "./_generated/server";
 import { v } from "convex/values";
 import OpenAI from "openai";
 import { api } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
 import { encoding_for_model } from "tiktoken";
 
 const MAX_TOKENS = 8192; // Token limit for text-embedding-3-small
@@ -209,7 +210,7 @@ export const batchGenerateEmbeddings = action({
 
       // Process batch concurrently
       const results = await Promise.allSettled(
-        batch.map((bookmark) =>
+        batch.map((bookmark: Doc<"bookmarks">) =>
           ctx.runAction(api.embeddings.generateBookmarkEmbedding, {
             bookmarkId: bookmark._id,
           })
@@ -217,7 +218,7 @@ export const batchGenerateEmbeddings = action({
       );
 
       // Track success/failure
-      results.forEach((result, index) => {
+      results.forEach((result: PromiseSettledResult<unknown>, index: number) => {
         const bookmarkId = batch[index]._id;
         if (result.status === "fulfilled") {
           successCount++;

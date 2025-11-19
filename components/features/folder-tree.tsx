@@ -5,7 +5,7 @@ import { IconPlus, IconFolderPlus } from "@tabler/icons-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { FolderTreeItem } from "./folder-tree-item";
+import { FolderTreeItem, FolderNode } from "./folder-tree-item";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -24,7 +24,7 @@ export function FolderTree({
   onNewFolder,
   onRenameFolder,
 }: FolderTreeProps) {
-  const folders = useQuery(api.folders.listFoldersInProject, { projectId });
+  const folders = useQuery(api.folders.listFoldersInProject, { projectId }) as FolderNode[] | undefined;
 
   if (folders === undefined) {
     return (
@@ -66,7 +66,7 @@ export function FolderTree({
         </Button>
       </div>
       <div className="space-y-0.5">
-        {folders.map((folder) => (
+        {folders.map((folder: FolderNode) => (
           <FolderTreeItem
             key={folder._id}
             folder={folder}

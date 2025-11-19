@@ -10,7 +10,7 @@ import {
   Question,
   categoryColors,
   categoryLabels,
-} from "@/lib/mocks/questions";
+} from "@/lib/types/prd";
 
 interface QuestionCardProps {
   question: Question;

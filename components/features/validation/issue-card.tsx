@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { ValidationIssue, severityColors } from "@/lib/mocks/validation";
+import { ValidationIssue, severityColors } from "@/lib/types/prd";
 
 interface IssueCardProps {
   issue: ValidationIssue;
@@ -19,8 +19,8 @@ export function IssueCard({ issue }: IssueCardProps) {
     <div
       className={cn(
         "rounded-lg border-l-4 bg-card p-4",
-        issue.severity === "info" && "border-l-[hsl(var(--info))]",
-        issue.severity === "warning" && "border-l-[hsl(var(--warning))]",
+        issue.severity === "low" && "border-l-[hsl(var(--info))]",
+        issue.severity === "moderate" && "border-l-[hsl(var(--warning))]",
         issue.severity === "critical" && "border-l-[hsl(var(--critical))]"
       )}
     >

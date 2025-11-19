@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Id, Doc } from "@/convex/_generated/dataModel";
 
 interface SemanticSearchProps {
   projectId?: Id<"projects">;
@@ -30,7 +30,7 @@ export function SemanticSearch({ projectId, limit = 10 }: SemanticSearchProps) {
           limit,
         }
       : "skip"
-  );
+  ) as Doc<"bookmarks">[] | undefined;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
