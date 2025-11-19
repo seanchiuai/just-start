@@ -20,6 +20,7 @@ export function PRDNavigation({
         <div className="space-y-1">
           {sections.map((section) => (
             <button
+              type="button"
               key={section.id}
               onClick={() => onNavigate(section.id)}
               className={cn(
@@ -47,6 +48,7 @@ export function PRDNavigation({
         <div className="flex gap-2">
           {sections.map((section) => (
             <button
+              type="button"
               key={section.id}
               onClick={() => onNavigate(section.id)}
               className={cn(

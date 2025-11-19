@@ -95,6 +95,7 @@ export function ShareDialog({
               {onRevoke && (
                 <div className="pt-4 border-t">
                   <button
+                    type="button"
                     onClick={onRevoke}
                     className="text-sm text-warning hover:text-warning/80 flex items-center gap-1"
                   >

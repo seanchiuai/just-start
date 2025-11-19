@@ -40,7 +40,7 @@ export const mockValidationResult: CompatibilityCheck = {
     },
   ],
   summary:
-    "Your tech stack is compatible with 2 recommendations for optimal setup.",
+    "Your tech stack is compatible with 3 recommendations for optimal setup.",
 };
 
 export const mockApprovedResult: CompatibilityCheck = {

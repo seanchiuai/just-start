@@ -50,6 +50,7 @@ export function AlternativesDialog({
         <div className="space-y-2 mt-4">
           {/* Current selection */}
           <button
+            type="button"
             onClick={() => handleSelect(currentTech)}
             className={cn(
               "w-full text-left p-4 rounded-lg border transition-all",
@@ -65,6 +66,7 @@ export function AlternativesDialog({
           {/* Alternatives */}
           {alternatives.map((alt) => (
             <button
+              type="button"
               key={alt}
               onClick={() => handleSelect(alt)}
               className={cn(

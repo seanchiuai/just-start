@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Code Quality Fixes
+
+- Added `type="button"` to prevent form submissions: prd-navigation, share-dialog, alternatives-dialog
+- Fixed concurrent export guard in export-dropdown
+- Added null guard for question-card isOtherSelected
+- Removed invalid stagger classes in questions-loader
+- Fixed border-l color classes in issue-card (use hsl() syntax)
+- Added accessibility to validation-loader (role, aria-label)
+- Added error handling and fixed props spread order in copy-button
+- Wired up onCreateFirst prop in empty-dashboard
+- Fixed validation summary count (2 → 3)
+
+---
+
 ### Completed - Plan 10: UI Build Phase
 
 **Technical Editorial Design System:**
@@ -28,6 +42,7 @@
 ---
 
 ### Plans
+
 - Restructured `plan-10-ui-build.md` for parallel execution
   - Mock data approach: UI builds without Convex dependency
   - 6 parallel tracks (A-F) after foundation phase

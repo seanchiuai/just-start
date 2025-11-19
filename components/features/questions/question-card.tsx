@@ -38,7 +38,7 @@ export function QuestionCard({ question, value, onChange }: QuestionCardProps) {
     onChange(newOtherValue || "Other");
   };
 
-  const isOtherSelected = showOther || (!question.options.includes(value) && value !== "");
+  const isOtherSelected = showOther || (value != null && value !== "" && !question.options.includes(value));
 
   return (
     <div className="space-y-4">

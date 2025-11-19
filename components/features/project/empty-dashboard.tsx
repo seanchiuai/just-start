@@ -46,8 +46,17 @@ export function EmptyDashboard({ onCreateFirst }: EmptyDashboardProps) {
         </p>
 
         {/* CTA */}
-        <Button asChild size="lg" className="bg-primary hover:bg-primary/90 mb-8">
-          <Link href="/project/new">Start Your First Project</Link>
+        <Button
+          asChild={!onCreateFirst}
+          size="lg"
+          className="bg-primary hover:bg-primary/90 mb-8"
+          onClick={onCreateFirst}
+        >
+          {onCreateFirst ? (
+            "Start Your First Project"
+          ) : (
+            <Link href="/project/new">Start Your First Project</Link>
+          )}
         </Button>
 
         {/* Features */}

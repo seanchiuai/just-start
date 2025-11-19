@@ -21,6 +21,9 @@ export function ExportDropdown({ onExport }: ExportDropdownProps) {
   const [successFormat, setSuccessFormat] = useState<ExportFormat | null>(null);
 
   const handleExport = async (format: ExportFormat) => {
+    // Guard against concurrent exports
+    if (loadingFormat !== null) return;
+
     setLoadingFormat(format);
     setSuccessFormat(null);
 
@@ -66,7 +69,7 @@ export function ExportDropdown({ onExport }: ExportDropdownProps) {
             <DropdownMenuItem
               key={format}
               onClick={() => handleExport(format)}
-              disabled={isLoading}
+              disabled={loadingFormat !== null}
               className="flex items-start gap-3 p-3"
             >
               <div className="mt-0.5">

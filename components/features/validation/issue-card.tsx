@@ -19,9 +19,9 @@ export function IssueCard({ issue }: IssueCardProps) {
     <div
       className={cn(
         "rounded-lg border-l-4 bg-card p-4",
-        issue.severity === "info" && "border-l-info",
-        issue.severity === "warning" && "border-l-warning",
-        issue.severity === "critical" && "border-l-critical"
+        issue.severity === "info" && "border-l-[hsl(var(--info))]",
+        issue.severity === "warning" && "border-l-[hsl(var(--warning))]",
+        issue.severity === "critical" && "border-l-[hsl(var(--critical))]"
       )}
     >
       <div className="flex items-start gap-3">

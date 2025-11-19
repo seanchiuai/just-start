@@ -8,11 +8,22 @@ interface ValidationLoaderProps {
 }
 
 export function ValidationLoader({ progress, status }: ValidationLoaderProps) {
+  const circumference = 2 * Math.PI * 40;
+  const strokeDashoffset = circumference * (1 - progress / 100);
+
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-6">
       {/* Circular progress */}
       <div className="relative">
-        <svg className="h-32 w-32 -rotate-90" viewBox="0 0 100 100">
+        <svg
+          className="h-32 w-32 -rotate-90"
+          viewBox="0 0 100 100"
+          role="progressbar"
+          aria-valuenow={Math.round(progress)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Validation progress: ${Math.round(progress)}%`}
+        >
           {/* Background circle */}
           <circle
             cx="50"
@@ -31,15 +42,15 @@ export function ValidationLoader({ progress, status }: ValidationLoaderProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth="8"
-            strokeDasharray={`${2 * Math.PI * 40}`}
-            strokeDashoffset={`${2 * Math.PI * 40 * (1 - progress / 100)}`}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             className="text-primary transition-all duration-300"
           />
         </svg>
         {/* Percentage text */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-mono text-2xl font-semibold">
+          <span className="font-mono text-2xl font-semibold" aria-hidden="true">
             {Math.round(progress)}%
           </span>
         </div>

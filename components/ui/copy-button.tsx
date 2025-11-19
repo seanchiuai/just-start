@@ -26,21 +26,25 @@ export function CopyButton({
   }, [hasCopied]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(value);
-    setHasCopied(true);
-    onCopy?.();
+    try {
+      await navigator.clipboard.writeText(value);
+      setHasCopied(true);
+      onCopy?.();
+    } catch (error) {
+      console.error("Failed to copy to clipboard:", error);
+    }
   };
 
   return (
     <Button
       size="sm"
       variant="ghost"
+      {...props}
       className={cn(
         "h-8 w-8 p-0 hover:bg-muted",
         className
       )}
       onClick={handleCopy}
-      {...props}
     >
       {hasCopied ? (
         <Check className="h-4 w-4 text-success" />

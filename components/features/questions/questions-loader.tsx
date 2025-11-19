@@ -16,7 +16,7 @@ export function QuestionsLoader() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className={`space-y-4 animate-fade-in stagger-${i}`}
+          className="space-y-4 animate-fade-in"
           style={{ animationDelay: `${i * 150}ms` }}
         >
           <div className="flex items-center gap-2">
