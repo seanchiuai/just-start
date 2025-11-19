@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { DEFAULT_SUBSCRIPTION } from "./schema";
 
 // List user's projects
 // Returns null for auth/user failures, empty array for no projects
@@ -68,12 +69,29 @@ export const create = mutation({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
-    const user = await ctx.db
+    let user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    if (!user) throw new Error("User not found");
+    // Auto-create user if they don't exist (handles missing webhook sync)
+    if (!user) {
+      const now = Date.now();
+      const userId = await ctx.db.insert("users", {
+        clerkId: identity.subject,
+        email: identity.email ?? "",
+        name: identity.name,
+        imageUrl: identity.pictureUrl,
+        createdAt: now,
+        updatedAt: now,
+        prdsGenerated: 0,
+        subscription: {
+          tier: DEFAULT_SUBSCRIPTION.tier,
+          credits: DEFAULT_SUBSCRIPTION.credits,
+        },
+      });
+      user = (await ctx.db.get(userId))!;
+    }
 
     const now = Date.now();
 
