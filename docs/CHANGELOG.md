@@ -2,6 +2,36 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Integration Phase - Mock Data Replacement
+
+**IMPORTANT: Run `npx convex dev` to regenerate types after pulling these changes.**
+
+**Completed:**
+- Created shared types file `lib/types/prd.ts` with all PRD-related types
+- Created `components/ui/query-loader.tsx` with loading skeletons
+- Integrated Questions page with Convex queries/mutations
+- Integrated Tech Stack page with Convex queries/mutations
+- Integrated Validation page with Convex queries/mutations
+- Integrated PRD page with Convex queries/mutations/actions
+- Deleted all mock files from `lib/mocks/`
+- Updated all component imports to use new types file
+
+**Pages Updated:**
+- `app/(protected)/project/[projectId]/questions/page.tsx` - Uses `api.questions.getByProject`, `api.questions.saveAnswers`
+- `app/(protected)/project/[projectId]/tech-stack/page.tsx` - Uses `api.techStack.getByProject`, `api.techStack.confirm`
+- `app/(protected)/project/[projectId]/validation/page.tsx` - Uses `api.compatibility.getByProject`, `api.compatibility.acknowledgeWarnings`
+- `app/(protected)/project/[projectId]/prd/page.tsx` - Uses `api.prd.getByProject`, `api.prd.exportJSON`, `api.prd.exportMarkdown`, `api.prd.createShareLink`
+
+**Types Added to `lib/types/prd.ts`:**
+- Project types: `PrdProject`, `QuestionSet`, `TechStackRecommendations`, `CompatibilityCheck`, `PRD`
+- Status types: `ProjectStatus`, `ValidationStatus`, `ValidationSeverity`, `QuestionCategory`
+- Content types: `Question`, `TechRecommendation`, `ValidationIssue`, `PRDContent`, `UserPersona`, `Feature`
+- UI mappings: `statusColors`, `statusLabels`, `severityColors`, `categoryColors`, `categoryLabels`, `prdSections`
+
+**Note:** Some type errors remain in Convex files due to missing codegen. Run `npx convex dev` to resolve.
+
+---
+
 ### Security Fixes
 
 **Export Action Authorization:**

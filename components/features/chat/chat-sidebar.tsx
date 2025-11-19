@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { ChatHeader } from "./chat-header";
 import { ChatMessage } from "./chat-message";
 import { ChatInput } from "./chat-input";
@@ -24,7 +25,7 @@ export function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
   // Fetch messages
   const messages = useQuery(api.chatMessages.listRecentMessages, {
     limit: 50,
-  });
+  }) as Doc<"chatMessages">[] | undefined;
 
   // Mutations and actions
   const clearHistory = useMutation(api.chatMessages.clearHistory);

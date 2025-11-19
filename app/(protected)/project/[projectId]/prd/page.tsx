@@ -26,7 +26,6 @@ export default function PRDPage() {
 
   // Share mutations
   const createShareLink = useMutation(api.prd.createShareLink);
-  const revokeShareLink = useMutation(api.prd.revokeShareLink);
 
   // Parse PRD content
   const prdContent = prd ? (JSON.parse(prd.content) as PRDContent) : null;

@@ -24,7 +24,8 @@ export function FolderTree({
   onNewFolder,
   onRenameFolder,
 }: FolderTreeProps) {
-  const folders = useQuery(api.folders.listFoldersInProject, { projectId });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const folders = useQuery(api.folders.listFoldersInProject, { projectId }) as any;
 
   if (folders === undefined) {
     return (
@@ -66,7 +67,8 @@ export function FolderTree({
         </Button>
       </div>
       <div className="space-y-0.5">
-        {folders.map((folder) => (
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {folders.map((folder: any) => (
           <FolderTreeItem
             key={folder._id}
             folder={folder}

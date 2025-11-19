@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { TechCategory } from "@/lib/mocks/tech-stack";
+import { TechCategory } from "@/lib/types/prd";
 
 interface AlternativesDialogProps {
   open: boolean;

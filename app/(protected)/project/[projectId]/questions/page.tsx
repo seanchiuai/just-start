@@ -1,31 +1,95 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { QuestionsForm } from "@/components/features/questions/questions-form";
-import { mockQuestions } from "@/lib/mocks/questions";
+import { QuestionsFormSkeleton } from "@/components/ui/query-loader";
 
 export default function QuestionsPage() {
   const router = useRouter();
+  const params = useParams();
+  const projectId = params.projectId as Id<"prdProjects">;
 
-  // Mock project data - will be replaced with Convex query during integration
-  const mockProject = {
-    appName: "TaskFlow",
-    currentStep: 2,
+  // Fetch project and questions from Convex
+  const project = useQuery(api.prdProjects.get, { projectId });
+  const questionSet = useQuery(api.questions.getByProject, { projectId });
+  const saveAnswers = useMutation(api.questions.saveAnswers);
+
+  const handleSubmit = async (answers: Record<string, string>) => {
+    try {
+      await saveAnswers({ projectId, answers });
+      router.push(`/project/${projectId}/tech-stack`);
+    } catch (error) {
+      console.error("Failed to save answers:", error);
+    }
   };
 
-  const handleSubmit = (answers: Record<string, string>) => {
-    // Log for development - will be replaced with Convex mutation
-    console.log("Submitted answers:", answers);
+  // Loading state
+  if (project === undefined || questionSet === undefined) {
+    return (
+      <WizardLayout
+        projectName="Loading..."
+        currentStep={2}
+      >
+        <div className="space-y-6">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">
+              Clarifying Questions
+            </h2>
+            <p className="mt-2 text-muted-foreground">
+              Help us understand your project better by answering these questions.
+              Your responses will shape the tech stack recommendations.
+            </p>
+          </div>
+          <QuestionsFormSkeleton />
+        </div>
+      </WizardLayout>
+    );
+  }
 
-    // Navigate to next step
-    // router.push(`/project/${projectId}/tech-stack`);
-  };
+  // Error state - project not found or not authorized
+  if (project === null) {
+    return (
+      <WizardLayout
+        projectName="Error"
+        currentStep={2}
+      >
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-destructive">
+              Project not found or you don&apos;t have access to it.
+            </p>
+          </div>
+        </div>
+      </WizardLayout>
+    );
+  }
+
+  // Error state - questions not found
+  if (questionSet === null) {
+    return (
+      <WizardLayout
+        projectName={project.appName}
+        currentStep={project.currentStep}
+      >
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <p className="text-sm text-destructive">
+              Questions have not been generated for this project yet.
+            </p>
+          </div>
+        </div>
+      </WizardLayout>
+    );
+  }
 
   return (
     <WizardLayout
-      projectName={mockProject.appName}
-      currentStep={mockProject.currentStep}
+      projectName={project.appName}
+      currentStep={project.currentStep}
     >
       <div className="space-y-6">
         <div>
@@ -39,7 +103,7 @@ export default function QuestionsPage() {
         </div>
 
         <QuestionsForm
-          questions={mockQuestions}
+          questions={questionSet.questions}
           onSubmit={handleSubmit}
         />
       </div>

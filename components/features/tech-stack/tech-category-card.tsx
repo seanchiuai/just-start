@@ -5,8 +5,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
-import { TechRecommendation, TechCategory, categoryDescriptions } from "@/lib/mocks/tech-stack";
+import { TechRecommendation, TechCategory, categoryDescriptions } from "@/lib/types/prd";
 
 interface TechCategoryCardProps {
   category: TechCategory;

@@ -8,14 +8,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import {
-  MockProject,
   statusColors,
   statusLabels,
-  ProjectStatus,
-} from "@/lib/mocks/projects";
+  PrdProject,
+} from "@/lib/types/prd";
 
 interface ProjectCardProps {
-  project: MockProject;
+  project: PrdProject;
   onDelete?: (id: string) => void;
 }
 

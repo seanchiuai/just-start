@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CopyButton } from "@/components/ui/copy-button";
-import { PRDContent } from "@/lib/mocks/prd";
+import { PRDContent } from "@/lib/types/prd";
 
 interface SectionProps {
   prd: PRDContent;

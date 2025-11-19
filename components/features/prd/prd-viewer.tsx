@@ -11,7 +11,7 @@ import {
   ArchitectureSection,
   UIUXSection,
 } from "./prd-sections";
-import { PRDContent, prdSections } from "@/lib/mocks/prd";
+import { PRDContent, prdSections } from "@/lib/types/prd";
 
 interface PRDViewerProps {
   prd: PRDContent;
