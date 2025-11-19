@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,17 @@ export function QuestionCard({ question, value, onChange }: QuestionCardProps) {
   const [showOther, setShowOther] = useState(false);
   const [otherValue, setOtherValue] = useState("");
 
+  // Initialize otherValue from incoming value prop when it's a custom value
+  useEffect(() => {
+    if (value != null && value !== "" && !question.options.includes(value)) {
+      setOtherValue(value);
+    }
+  }, [value, question.options]);
+
   const handleValueChange = (newValue: string) => {
     if (newValue === "other") {
       setShowOther(true);
-      onChange(otherValue || "Other");
+      onChange(otherValue || "");
     } else {
       setShowOther(false);
       onChange(newValue);
@@ -35,7 +42,7 @@ export function QuestionCard({ question, value, onChange }: QuestionCardProps) {
   const handleOtherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOtherValue = e.target.value;
     setOtherValue(newOtherValue);
-    onChange(newOtherValue || "Other");
+    onChange(newOtherValue || "");
   };
 
   const isOtherSelected = showOther || (value != null && value !== "" && !question.options.includes(value));

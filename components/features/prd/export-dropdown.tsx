@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Download, FileJson, FileText, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,19 @@ interface ExportDropdownProps {
 export function ExportDropdown({ onExport }: ExportDropdownProps) {
   const [loadingFormat, setLoadingFormat] = useState<ExportFormat | null>(null);
   const [successFormat, setSuccessFormat] = useState<ExportFormat | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear success format after 2s with cleanup
+  useEffect(() => {
+    if (successFormat !== null) {
+      timeoutRef.current = setTimeout(() => setSuccessFormat(null), 2000);
+    }
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [successFormat]);
 
   const handleExport = async (format: ExportFormat) => {
     // Guard against concurrent exports
@@ -30,7 +43,6 @@ export function ExportDropdown({ onExport }: ExportDropdownProps) {
     try {
       await onExport(format);
       setSuccessFormat(format);
-      setTimeout(() => setSuccessFormat(null), 2000);
     } finally {
       setLoadingFormat(null);
     }

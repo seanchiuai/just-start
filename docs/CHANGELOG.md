@@ -13,6 +13,9 @@
 - Added error handling and fixed props spread order in copy-button
 - Wired up onCreateFirst prop in empty-dashboard
 - Fixed validation summary count (2 → 3)
+- Added useEffect to question-card to initialize otherValue from value prop
+- Changed "Other" fallback to empty string in question-card handlers
+- Moved export-dropdown setTimeout to useEffect with cleanup to prevent memory leaks
 
 ---
 
