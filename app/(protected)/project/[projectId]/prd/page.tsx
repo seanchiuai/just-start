@@ -21,12 +21,12 @@ export default function PRDPage() {
   const project = useQuery(api.prdProjects.get, { projectId });
   const prd = useQuery(api.prd.getByProject, { projectId });
 
-  // Export actions
-  const exportJSON = useAction(api.prd.exportJSON);
-  const exportMarkdown = useAction(api.prd.exportMarkdown);
+  // Export actions (from prdActions.ts - Node.js runtime)
+  const exportJSON = useAction(api.prdActions.exportJSON);
+  const exportMarkdown = useAction(api.prdActions.exportMarkdown);
 
-  // Share mutations
-  const createShareLink = useMutation(api.prd.createShareLink);
+  // Share actions (from prdActions.ts - Node.js runtime)
+  const createShareLink = useAction(api.prdActions.createShareLink);
 
   // Parse PRD content safely with memoization
   const prdContent = useMemo(() => {

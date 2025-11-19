@@ -221,19 +221,20 @@ export const generate = action({
 export const regenerate = action({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
-    // Verify authentication
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    // Get project details
+    // Get project details first (same pattern as generate action)
+    // @ts-expect-error - TypeScript type inference issue with internal API
     const project = await ctx.runQuery(internal.prdProjects.getInternal, {
       projectId: args.projectId,
     });
 
     if (!project) {
       throw new Error("Project not found");
+    }
+
+    // Verify authentication
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
     }
 
     // Get user and verify authorization

@@ -1,12 +1,23 @@
 "use node";
 
+import crypto from "crypto";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { generatePRD } from "./ai/claude";
-import { generateToken } from "./lib/utils";
 import { prdToMarkdown } from "./lib/markdown";
 import { requirePrdOwnership } from "./lib/auth";
+
+// Generate cryptographically secure random token
+// 32 bytes = 256 bits of entropy, encoded as URL-safe base64
+function generateToken(): string {
+  const randomBytes = crypto.randomBytes(32);
+  return randomBytes
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
 
 // Generate PRD using Claude
 export const generate = action({
