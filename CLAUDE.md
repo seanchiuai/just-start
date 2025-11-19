@@ -19,9 +19,10 @@ Auth: `ConvexProviderWithClerk` | Schema: `convex/schema.ts` | Protection: `midd
 ## Structure
 
 ```plaintext
-/app/(auth|protected)    - Auth and protected routes
+/app/(protected)/        - Protected routes
 /app/share/[token]       - Public share pages
-/components/features/    - Feature modules (prd/, questions/, tech-stack/, validation/, progress/, project/, landing/)
+/components/features/    - Feature modules (prd/, questions/, tech-stack/, validation/, progress/, project/)
+/components/landing/     - Landing page components
 /components/ui/          - Base UI (includes query-loader.tsx for loading states)
 /convex                  - Backend (ai/, schema, queries, mutations, actions)
 /convex/ai/              - AI wrappers (claude.ts, perplexity.ts)
