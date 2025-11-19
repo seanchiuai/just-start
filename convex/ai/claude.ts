@@ -199,7 +199,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
   return JSON.parse(content.text);
 }
 
-// Analyze compatibility issues
+// Analyze compatibility issues using only Anthropic API
 export async function analyzeCompatibilityIssues(
   stack: {
     frontend: string;
@@ -207,37 +207,39 @@ export async function analyzeCompatibilityIssues(
     database: string;
     auth: string;
     hosting: string;
-  },
-  research: string
+  }
 ): Promise<CompatibilityIssue[]> {
-  const prompt = `Analyze this tech stack for compatibility issues:
+  const prompt = `You are a senior software architect analyzing a tech stack for compatibility issues.
 
-Stack:
+Tech Stack to Analyze:
 - Frontend: ${stack.frontend}
 - Backend: ${stack.backend}
 - Database: ${stack.database}
 - Auth: ${stack.auth}
 - Hosting: ${stack.hosting}
 
-Research findings:
-${research}
+Perform a comprehensive compatibility analysis considering:
 
-Identify:
-1. Version compatibility issues
-2. Integration challenges
-3. Deprecated technologies
-4. Production readiness concerns
-5. Missing requirements
+1. **Version Compatibility**: Are these technologies compatible with each other? Any version conflicts?
+2. **Integration Challenges**: How well do these technologies integrate? Any known pain points?
+3. **Deprecated Technologies**: Are any of these deprecated or approaching end-of-life?
+4. **Production Readiness**: Are all technologies stable and production-ready?
+5. **Common Issues**: What are the most common problems developers face with this combination?
+6. **Performance Considerations**: Any performance bottlenecks with this stack?
+7. **Security Considerations**: Any security concerns with these choices?
 
-For each issue, provide:
-- severity: "critical" | "moderate" | "low"
-- component: affected technology
-- issue: clear description
-- recommendation: how to resolve
+For each issue found, provide:
+- severity: "critical" (must fix before proceeding) | "moderate" (warning, can proceed) | "low" (informational)
+- component: the affected technology
+- issue: clear description of the problem
+- recommendation: specific steps to resolve
 
-Critical issues should block PRD generation.
-Moderate issues are warnings but can proceed.
-Low issues are nice-to-know.
+Critical issues should only be used for:
+- Known breaking incompatibilities
+- Deprecated technologies that will stop working
+- Critical security vulnerabilities
+
+Be realistic and practical. If the stack is well-chosen and commonly used together, it's okay to return an empty array or only low-severity notes.
 
 Return ONLY valid JSON array (no markdown, no code blocks):
 [

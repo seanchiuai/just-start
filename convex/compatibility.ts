@@ -7,7 +7,6 @@ import {
   internalMutation,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { validateCompatibility } from "./ai/perplexity";
 import { analyzeCompatibilityIssues } from "./ai/claude";
 
 // Get compatibility check for a project (public)
@@ -163,23 +162,20 @@ export const validate = action({
       projectId: args.projectId,
       stage: "validating_compatibility",
       progress: 10,
-      message: "Checking version compatibility...",
+      message: "Analyzing tech stack compatibility...",
     });
 
     try {
-      // Research compatibility with Perplexity
-      const research = await validateCompatibility(stack);
-
       // Update progress
       await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
         projectId: args.projectId,
         stage: "validating_compatibility",
-        progress: 50,
-        message: "Analyzing potential issues...",
+        progress: 30,
+        message: "Checking for compatibility issues...",
       });
 
-      // Analyze issues with Claude
-      const issues = await analyzeCompatibilityIssues(stack, research);
+      // Analyze compatibility issues with Claude (no Perplexity)
+      const issues = await analyzeCompatibilityIssues(stack);
 
       // Determine status
       const hasCritical = issues.some((i) => i.severity === "critical");

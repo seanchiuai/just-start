@@ -2,11 +2,30 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Security Fixes
+
+**Export Action Authorization:**
+- `exportJSON` and `exportMarkdown` now require authentication
+- Added ownership verification using `verifyOwnership` internal query
+- Prevents unauthorized access to other users' PRDs
+
+**Secure Token Generation:**
+- Replaced `Math.random()` with `crypto.randomBytes(32)`
+- Tokens now use URL-safe base64 encoding (256 bits entropy)
+- Cryptographically secure share links
+
+**Compatibility Validation:**
+- Removed Perplexity API dependency from validation
+- Now uses only Anthropic Claude for compatibility analysis
+- More comprehensive analysis with single API call
+
+---
+
 ### Implemented - Plans 03-07: Backend AI Integration
 
 **AI Wrapper Files (`convex/ai/`):**
-- `claude.ts` - Claude API wrapper with prompts for questions, recommendations, compatibility, PRD generation
-- `perplexity.ts` - Perplexity API wrapper with retry logic, tech stack research, compatibility validation
+- `claude.ts` - Claude API wrapper for questions, recommendations, compatibility, PRD generation
+- `perplexity.ts` - Perplexity API wrapper for tech stack research only
 
 **Plan 03 - AI Questions (`convex/questions.ts`):**
 - `generate` action - Generates 4-6 clarifying questions using Claude Sonnet
@@ -21,7 +40,7 @@
 - `getByProject` query - Gets recommendations with auth
 
 **Plan 05 - Validation (`convex/compatibility.ts`):**
-- `validate` action - Uses Perplexity + Claude to check compatibility
+- `validate` action - Uses Claude only for compatibility analysis
 - `save` internal mutation - Saves compatibility check results
 - `acknowledgeWarnings` mutation - Allows proceeding with warnings
 - `getByProject` query - Gets validation results with auth

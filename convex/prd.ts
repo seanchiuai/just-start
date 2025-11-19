@@ -1,3 +1,5 @@
+"use node";
+
 import { v } from "convex/values";
 import {
   query,
@@ -8,6 +10,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { generatePRD } from "./ai/claude";
+import crypto from "crypto";
 
 // Get PRD for a project (public)
 export const getByProject = query({
@@ -72,6 +75,26 @@ export const getInternal = internalQuery({
   args: { prdId: v.id("prds") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.prdId);
+  },
+});
+
+// Internal: Verify user owns the PRD (for actions)
+export const verifyOwnership = internalQuery({
+  args: { prdId: v.id("prds"), clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const prd = await ctx.db.get(args.prdId);
+    if (!prd) return { authorized: false, prd: null };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+
+    if (!user || prd.userId !== user._id) {
+      return { authorized: false, prd: null };
+    }
+
+    return { authorized: true, prd };
   },
 });
 
@@ -318,10 +341,20 @@ export const getShared = query({
 export const exportJSON = action({
   args: { prdId: v.id("prds") },
   handler: async (ctx, args) => {
-    const prd = await ctx.runQuery(internal.prd.getInternal, { prdId: args.prdId });
+    // Authenticate user
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
 
-    if (!prd) {
-      throw new Error("PRD not found");
+    // Verify ownership
+    const { authorized, prd } = await ctx.runQuery(internal.prd.verifyOwnership, {
+      prdId: args.prdId,
+      clerkId: identity.subject,
+    });
+
+    if (!authorized || !prd) {
+      throw new Error("Not authorized");
     }
 
     // Parse content to get product name
@@ -342,10 +375,20 @@ export const exportJSON = action({
 export const exportMarkdown = action({
   args: { prdId: v.id("prds") },
   handler: async (ctx, args) => {
-    const prd = await ctx.runQuery(internal.prd.getInternal, { prdId: args.prdId });
+    // Authenticate user
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
 
-    if (!prd) {
-      throw new Error("PRD not found");
+    // Verify ownership
+    const { authorized, prd } = await ctx.runQuery(internal.prd.verifyOwnership, {
+      prdId: args.prdId,
+      clerkId: identity.subject,
+    });
+
+    if (!authorized || !prd) {
+      throw new Error("Not authorized");
     }
 
     const content = JSON.parse(prd.content);
@@ -365,13 +408,14 @@ export const exportMarkdown = action({
 // ============ Helper Functions ============
 
 function generateToken(): string {
-  // Generate random token
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let token = "";
-  for (let i = 0; i < 32; i++) {
-    token += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return token;
+  // Generate cryptographically secure random token
+  // 32 bytes = 256 bits of entropy, encoded as URL-safe base64
+  const randomBytes = crypto.randomBytes(32);
+  return randomBytes
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 // Convert PRD content to Markdown
