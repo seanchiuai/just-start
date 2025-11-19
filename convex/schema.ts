@@ -69,7 +69,8 @@ export default defineSchema({
         category: v.string(),
       })
     ),
-    answers: v.optional(v.any()),
+    // Maps question ID (as string) to selected option string
+    answers: v.optional(v.record(v.string(), v.string())),
     generatedAt: v.number(),
     answeredAt: v.optional(v.number()),
   }).index("by_project", ["projectId"]),
@@ -79,8 +80,52 @@ export default defineSchema({
     projectId: v.id("prdProjects"),
     researchQueries: v.array(v.string()),
     researchResults: v.string(),
-    recommendations: v.any(),
-    confirmedStack: v.optional(v.any()),
+    recommendations: v.object({
+      frontend: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.array(v.string()),
+      }),
+      backend: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.array(v.string()),
+      }),
+      database: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.array(v.string()),
+      }),
+      auth: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.array(v.string()),
+      }),
+      hosting: v.object({
+        technology: v.string(),
+        reasoning: v.string(),
+        pros: v.array(v.string()),
+        cons: v.array(v.string()),
+        alternatives: v.array(v.string()),
+      }),
+    }),
+    confirmedStack: v.optional(
+      v.object({
+        frontend: v.string(),
+        backend: v.string(),
+        database: v.string(),
+        auth: v.string(),
+        hosting: v.string(),
+      })
+    ),
     generatedAt: v.number(),
     confirmedAt: v.optional(v.number()),
   }).index("by_project", ["projectId"]),
@@ -95,7 +140,11 @@ export default defineSchema({
     ),
     issues: v.array(
       v.object({
-        severity: v.string(),
+        severity: v.union(
+          v.literal("critical"),
+          v.literal("moderate"),
+          v.literal("low")
+        ),
         component: v.string(),
         issue: v.string(),
         recommendation: v.string(),
@@ -109,6 +158,17 @@ export default defineSchema({
   prds: defineTable({
     projectId: v.id("prdProjects"),
     userId: v.id("users"),
+    // PRD content structure (see plan-06-prd-generation.md):
+    // - overview: { summary, problemStatement, targetAudience, valueProposition }
+    // - goals: { primary, secondary, metrics }
+    // - personas: Array<{ name, description, goals, painPoints }>
+    // - features: { mvp: Array<Feature>, niceToHave: Array<Feature> }
+    // - architecture: { overview, techStack, dataFlow }
+    // - dataModels: Array<{ name, fields, relationships }>
+    // - apiEndpoints: Array<{ method, path, description, auth }>
+    // - uiux: { designPrinciples, keyScreens, userFlows }
+    // - timeline: { phases: Array<{ name, duration, deliverables }> }
+    // - risks: Array<{ risk, mitigation, impact }>
     content: v.any(),
     version: v.number(),
     generatedAt: v.number(),

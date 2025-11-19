@@ -5,7 +5,7 @@ argument-hint: [plan(s) you want to execute.md]
 
 # Command: Execute Plan
 
-Execute the mentioned plan. If not plans are mentioned, STOP and ask the user for a plan to execute
+Execute the mentioned plan. If no plans are mentioned, STOP and ask the user for a plan to execute
 
 Context:
 - Read PRD.json for full product requirements

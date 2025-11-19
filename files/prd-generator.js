@@ -27,6 +27,14 @@ const CONFIG = {
   }
 };
 
+// Validate required API keys
+if (!CONFIG.anthropic.apiKey) {
+  throw new Error('ANTHROPIC_API_KEY environment variable is required');
+}
+if (!CONFIG.perplexity.apiKey) {
+  throw new Error('PERPLEXITY_API_KEY environment variable is required');
+}
+
 // ============================================
 // SCHEMAS
 // ============================================
@@ -189,54 +197,82 @@ class PRDGenerator {
   async callClaude(prompt, model = CONFIG.anthropic.models.sonnet, maxTokens = 4096) {
     await this.claudeLimiter.waitForSlot();
 
-    const response = await fetch(`${CONFIG.anthropic.baseUrl}/messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CONFIG.anthropic.apiKey,
-        'anthropic-version': CONFIG.anthropic.version
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Claude API error: ${response.status} - ${error}`);
+    try {
+      const response = await fetch(`${CONFIG.anthropic.baseUrl}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CONFIG.anthropic.apiKey,
+          'anthropic-version': CONFIG.anthropic.version
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          messages: [{ role: 'user', content: prompt }]
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Claude API error: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      return data.content[0].text;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Claude API request timed out after 60 seconds');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return data.content[0].text;
   }
 
   async callPerplexity(prompt) {
     await this.perplexityLimiter.waitForSlot();
 
-    const response = await fetch(`${CONFIG.perplexity.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${CONFIG.perplexity.apiKey}`
-      },
-      body: JSON.stringify({
-        model: CONFIG.perplexity.model,
-        messages: [
-          { role: 'system', content: 'You are a helpful tech architecture expert.' },
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Perplexity API error: ${response.status} - ${error}`);
+    try {
+      const response = await fetch(`${CONFIG.perplexity.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${CONFIG.perplexity.apiKey}`
+        },
+        body: JSON.stringify({
+          model: CONFIG.perplexity.model,
+          messages: [
+            { role: 'system', content: 'You are a helpful tech architecture expert.' },
+            { role: 'user', content: prompt }
+          ]
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Perplexity API error: ${response.status} - ${error}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Perplexity API request timed out after 60 seconds');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return data.choices[0].message.content;
   }
 
   // ============================================
@@ -415,7 +451,13 @@ ${answersText}`;
   // MAIN FLOW
   // ============================================
 
-  async generate(appName, appDescription, getUserInput) {
+  async generate(appName, appDescription, getUserInput, retryCount = 0) {
+    const MAX_RETRIES = 3;
+
+    if (retryCount >= MAX_RETRIES) {
+      throw new Error(`Maximum retry limit (${MAX_RETRIES}) exceeded for compatibility resolution`);
+    }
+
     try {
       // Step 1: Generate questions
       const questionsData = await this.step1_generateQuestions(appName, appDescription);
@@ -455,8 +497,8 @@ ${answersText}`;
         
         const shouldRetry = await getUserInput.handleCriticalIssues(validation.issues);
         if (shouldRetry) {
-          // Recursive call with modified stack
-          return this.generate(appName, appDescription, getUserInput);
+          // Recursive call with modified stack and incremented retry count
+          return this.generate(appName, appDescription, getUserInput, retryCount + 1);
         } else {
           throw new Error('Critical compatibility issues unresolved');
         }

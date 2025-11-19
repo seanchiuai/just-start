@@ -2,18 +2,19 @@ import { v } from "convex/values";
 import { query, mutation, internalQuery } from "./_generated/server";
 
 // List user's projects
+// Returns null for auth/user failures, empty array for no projects
 export const listByUser = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    if (!identity) return null;
 
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    if (!user) return [];
+    if (!user) return null;
 
     return await ctx.db
       .query("prdProjects")
@@ -133,6 +134,14 @@ export const updateLastAccessed = mutation({
     const project = await ctx.db.get(args.projectId);
     if (!project) return;
 
+    // Verify ownership
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || project.userId !== user._id) return;
+
     await ctx.db.patch(args.projectId, {
       lastAccessedAt: Date.now(),
     });
@@ -158,38 +167,33 @@ export const remove = mutation({
       throw new Error("Not authorized");
     }
 
-    // Delete related data
-    const questions = await ctx.db
-      .query("questionSets")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    for (const q of questions) {
-      await ctx.db.delete(q._id);
-    }
+    // Delete related data in parallel
+    const [questions, techStack, compatibility, prds] = await Promise.all([
+      ctx.db
+        .query("questionSets")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect(),
+      ctx.db
+        .query("techStackRecommendations")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect(),
+      ctx.db
+        .query("compatibilityChecks")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect(),
+      ctx.db
+        .query("prds")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect(),
+    ]);
 
-    const techStack = await ctx.db
-      .query("techStackRecommendations")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    for (const t of techStack) {
-      await ctx.db.delete(t._id);
-    }
-
-    const compatibility = await ctx.db
-      .query("compatibilityChecks")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    for (const c of compatibility) {
-      await ctx.db.delete(c._id);
-    }
-
-    const prds = await ctx.db
-      .query("prds")
-      .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-      .collect();
-    for (const p of prds) {
-      await ctx.db.delete(p._id);
-    }
+    // Delete all related records in parallel
+    await Promise.all([
+      ...questions.map((q) => ctx.db.delete(q._id)),
+      ...techStack.map((t) => ctx.db.delete(t._id)),
+      ...compatibility.map((c) => ctx.db.delete(c._id)),
+      ...prds.map((p) => ctx.db.delete(p._id)),
+    ]);
 
     await ctx.db.delete(args.projectId);
   },

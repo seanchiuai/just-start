@@ -17,7 +17,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, FileText, Clock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-const statusColors = {
+type ProjectStatus = "draft" | "questions" | "research" | "confirmation" | "validation" | "completed";
+
+const statusColors: Record<ProjectStatus, string> = {
   draft: "bg-gray-100 text-gray-700",
   questions: "bg-blue-100 text-blue-700",
   research: "bg-purple-100 text-purple-700",
@@ -26,7 +28,7 @@ const statusColors = {
   completed: "bg-green-100 text-green-700",
 };
 
-const statusLabels = {
+const statusLabels: Record<ProjectStatus, string> = {
   draft: "Draft",
   questions: "Questions",
   research: "Research",
@@ -41,6 +43,11 @@ function ProjectCard({
   project: Doc<"prdProjects">;
 }) {
   const lastAccessed = new Date(project.lastAccessedAt).toLocaleDateString();
+
+  // Safe status lookup with fallback
+  const status = project.status as ProjectStatus;
+  const color = statusColors[status] ?? "bg-gray-100 text-gray-700";
+  const label = statusLabels[status] ?? "Unknown";
 
   const getProjectLink = () => {
     if (project.status === "completed") {
@@ -62,8 +69,8 @@ function ProjectCard({
               {project.appDescription}
             </CardDescription>
           </div>
-          <Badge className={statusColors[project.status]}>
-            {statusLabels[project.status]}
+          <Badge className={color}>
+            {label}
           </Badge>
         </div>
       </CardHeader>
@@ -188,7 +195,7 @@ export default function DashboardPage() {
 
         {isLoading ? (
           <DashboardSkeleton />
-        ) : projects.length === 0 ? (
+        ) : !projects || projects.length === 0 ? (
           <EmptyDashboard />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

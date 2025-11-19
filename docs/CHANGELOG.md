@@ -2,6 +2,39 @@
 
 ## [Unreleased] - 2025-11-18
 
+### Code Quality Fixes
+
+**TypeScript/Type Safety:**
+- Dashboard: Added `ProjectStatus` type, typed `statusColors`/`statusLabels` as `Record<ProjectStatus, string>`
+- Schema: Typed `answers` as `Record<string, string>`, typed recommendations with full tech stack schema
+- Schema: Typed `severity` enum as `critical | moderate | low`, added PRD content documentation
+- Fixed `use-mobile.ts` to return `boolean | undefined` to prevent hydration mismatch
+
+**Component Extraction:**
+- Created `Textarea` component (`components/ui/textarea.tsx`)
+- Created `ProjectLayout` component for shared project page structure
+- Refactored all project pages to use `ProjectLayout`
+
+**Convex Function Improvements:**
+- `listByUser`: Returns `null` for auth failures vs empty array for no projects
+- `updateLastAccessed`: Added ownership verification
+- `remove`: Parallel deletion using `Promise.all` for performance
+- Added proper ownership checks to prevent unauthorized access
+
+**Bug Fixes:**
+- Protected layout: Fixed redirect() during render - now uses useEffect/useRouter
+- New project: Added error logging in catch block
+
+**prd-generator.js:**
+- Added API key validation on startup
+- Added 60s timeout with AbortController for API calls
+- Added retry limit (MAX_RETRIES=3) for compatibility resolution
+
+**Docs:**
+- Added validation route to frontend-architecture.md directory tree
+
+---
+
 ### Completed - Plan 01: Schema Setup & Dashboard
 
 **Schema Changes:**

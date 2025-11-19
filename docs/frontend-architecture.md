@@ -14,7 +14,8 @@
 │   │   │   ├── questions/      # Step 2: Answer AI questions
 │   │   │   ├── tech-stack/     # Step 3: Review recommendations
 │   │   │   ├── confirmation/   # Step 4: Confirm selections
-│   │   │   └── prd/            # Step 5: View generated PRD
+│   │   │   ├── validation/     # Step 5: Compatibility checks
+│   │   │   └── prd/            # Step 6: View generated PRD
 │   └── settings/    # User settings
 ├── layout.tsx       # Root layout
 └── page.tsx         # Landing page

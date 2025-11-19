@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -42,7 +43,8 @@ export default function NewProjectPage() {
         appDescription: appDescription.trim(),
       });
       router.push(`/project/${projectId}/questions`);
-    } catch {
+    } catch (err) {
+      console.error("Failed to create project:", err);
       setError("Failed to create project. Please try again.");
       setIsLoading(false);
     }
@@ -86,9 +88,8 @@ export default function NewProjectPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="appDescription">App Description</Label>
-                <textarea
+                <Textarea
                   id="appDescription"
-                  className="flex min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Describe what your app does, who it's for, and key features you're envisioning..."
                   value={appDescription}
                   onChange={(e) => setAppDescription(e.target.value)}

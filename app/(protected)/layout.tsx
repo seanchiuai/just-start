@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ProtectedLayout({
   children,
@@ -9,9 +10,17 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const { isLoaded, isSignedIn } = useUser();
+  const router = useRouter();
 
-  if (isLoaded && !isSignedIn) {
-    redirect("/");
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  // Show nothing while checking auth (middleware handles protection)
+  if (!isLoaded) {
+    return null;
   }
 
   return <>{children}</>;
