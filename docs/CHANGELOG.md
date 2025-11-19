@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Bug Fixes
+
+**CRITICAL: User Not Found on Project Creation (2412af3):**
+- Fixed user sync issue between Clerk and Convex
+- `prdProjects:create` now auto-creates user from identity data if not found
+- Resolves complete inability to create projects for new users
+
+**TypeScript Error in questions.ts:**
+- Fixed `internal.questions.generateInternal` type error
+- Refactored `regenerate` action to include generation logic directly
+- Changed `generateInternal` to use `internalAction` instead of `action`
+
+---
+
 ### Integration Phase - Mock Data Replacement
 
 **IMPORTANT: Run `npx convex dev` to regenerate types after pulling these changes.**
