@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Documentation
+
+**APP-WORKFLOW.md Created:**
+- Comprehensive application workflow document with ASCII diagrams
+- Covers complete backend-to-frontend data flow
+- Includes: Architecture overview, Auth flow, Database schema, API sequences, Real-time updates, Component data flow, AI integration
+- Visual diagrams for: System architecture, Clerk+Convex JWT flow, Entity relationships, Project status flow, End-to-end PRD workflow, Generation status tracking, Component trees
+- Quick reference tables for API patterns, file locations, and technology stack
+
 ### Bug Fixes
 
 **CRITICAL: Questions Not Generated After Project Creation:**
