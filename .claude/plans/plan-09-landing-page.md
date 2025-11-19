@@ -140,7 +140,7 @@ export default function LandingPage() {
 - Copyright
 ```
 
-## SEO Optimization
+## SEO
 
 ### Meta Tags
 ```typescript

@@ -61,6 +61,9 @@ prds: defineTable({
   exportedAt: v.optional(v.number()),
   shareToken: v.optional(v.string()),
   shareExpiresAt: v.optional(v.number()),
+  shareAccessCount: v.optional(v.number()),
+  shareLastAccessedAt: v.optional(v.number()),
+  shareRevokedAt: v.optional(v.number()),
 })
   .index("by_project", ["projectId"])
   .index("by_user", ["userId"])
@@ -116,7 +119,7 @@ export async function generatePRD(
   compatibility: CompatibilityCheck
 ): Promise<PRDContent> {
   const response = await anthropic.messages.create({
-    model: "claude-opus-4-20250514", // Use Opus for highest quality
+    model: "claude-opus-4-1-20250805", // Use Opus 4.1 for highest quality
     max_tokens: 8000,
     messages: [{
       role: "user",

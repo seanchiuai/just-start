@@ -19,7 +19,7 @@ questionSets: defineTable({
     default: v.string(),
     category: v.string(), // "features", "audience", "scale", "workflow", "technical"
   })),
-  answers: v.optional(v.object({})), // map of question_id → answer
+  answers: v.optional(v.record(v.string(), v.string())), // map of question_id → answer
   generatedAt: v.number(),
   answeredAt: v.optional(v.number()),
 })
@@ -160,7 +160,7 @@ export const generate = action({
 export const saveAnswers = mutation({
   args: {
     projectId: v.id("projects"),
-    answers: v.object({}), // { "1": "Option A", "2": "Option B", ... }
+    answers: v.record(v.string(), v.string()), // { "1": "Option A", "2": "Option B", ... }
   },
   handler: async (ctx, args) => {
     const questionSet = await ctx.db

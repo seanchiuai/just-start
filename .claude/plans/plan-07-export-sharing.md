@@ -148,6 +148,9 @@ export const createShareLink = mutation({
     await ctx.db.patch(args.prdId, {
       shareToken,
       shareExpiresAt: expiresAt,
+      shareAccessCount: 0,
+      shareLastAccessedAt: null,
+      shareRevokedAt: null,
     });
 
     return {
@@ -191,9 +194,20 @@ export const getShared = query({
       throw new Error("PRD not found");
     }
 
+    // Check if link has been revoked
+    if (prd.shareRevokedAt) {
+      throw new Error("Share link has been revoked");
+    }
+
     if (prd.shareExpiresAt && prd.shareExpiresAt < Date.now()) {
       throw new Error("Share link expired");
     }
+
+    // Update access metadata
+    await ctx.db.patch(prd._id, {
+      shareAccessCount: (prd.shareAccessCount || 0) + 1,
+      shareLastAccessedAt: Date.now(),
+    });
 
     // Return read-only content
     return {

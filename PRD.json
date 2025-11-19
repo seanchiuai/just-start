@@ -308,7 +308,8 @@
         ]
       },
       {
-        "modelName": "Project",
+        "modelName": "Project (Convex table: prdProjects)",
+        "note": "The logical model is called 'Project' but the actual Convex table name is 'prdProjects'. This naming convention helps distinguish it from the project management context and clearly ties it to the PRD generation workflow.",
         "fields": [
           "projectId: string (unique ID)",
           "userId: string (ref to User)",
@@ -363,7 +364,10 @@
           "generatedAt: timestamp",
           "exportedAt: timestamp",
           "shareToken: string (for shareable links)",
-          "shareExpiresAt: timestamp"
+          "shareExpiresAt: timestamp",
+          "shareAccessCount: number (tracks how many times the share link was accessed)",
+          "shareLastAccessedAt: timestamp (last time the share link was accessed)",
+          "shareRevokedAt: timestamp (when the share link was revoked, null if not revoked)"
         ]
       }
     ],

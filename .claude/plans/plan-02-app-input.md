@@ -1,6 +1,8 @@
 # Plan: App Idea Input & Analysis
 
-## Status: Not Started
+## Status: Completed
+
+**Implementation:** Feature is implemented at `app/(protected)/project/new/page.tsx`
 
 ## Overview
 Create the first step of the wizard where users enter their app name and description.
