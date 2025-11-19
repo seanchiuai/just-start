@@ -2,6 +2,39 @@
 
 ## [Unreleased] - 2025-11-19
 
+### Plan 09 - Landing Page & Marketing
+
+**New Components (`components/landing/`):**
+- `hero-section.tsx` - "Stop Coding. Start Planning." headline, CTAs, trust badges
+- `problem-section.tsx` - Pain points grid (abandoned projects, wrong features, etc.)
+- `solution-section.tsx` - Benefits list, idea-to-PRD transformation visual
+- `how-it-works-section.tsx` - 4-step process with icons and timeline
+- `features-section.tsx` - 6 feature cards (AI questions, research, validation, etc.)
+- `prd-preview-section.tsx` - Interactive PRD example with tabbed sections
+- `testimonials-section.tsx` - 3 testimonials with metrics
+- `pricing-section.tsx` - Free/Pro tiers with feature comparison
+- `cta-section.tsx` - Final conversion section with social proof
+- `footer.tsx` - Links and copyright
+
+**SEO & Metadata:**
+- Updated `app/layout.tsx` with Just Start metadata (title, description, keywords)
+- Added OpenGraph and Twitter card meta tags
+- Added JSON-LD structured data for SoftwareApplication schema
+- Product: "Just Start - AI-Powered PRD Generator"
+
+**Page Updates:**
+- `app/page.tsx` - Full landing page with all sections
+- Authenticated users redirect to `/dashboard`
+- Unauthenticated users see marketing landing page
+
+**Design:**
+- Clean, minimal style following styling-guide.md
+- Mobile-first responsive design
+- Proper icon usage from lucide-react
+- Consistent with shadcn/ui component patterns
+
+---
+
 ### Plans
 - Restructured `plan-10-ui-build.md` for parallel execution
   - Mock data approach: UI builds without Convex dependency
