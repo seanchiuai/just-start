@@ -5,6 +5,7 @@ import {
   action,
   internalQuery,
   internalMutation,
+  internalAction,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { generateQuestions } from "./ai/claude";
@@ -206,15 +207,33 @@ export const generate = action({
 export const regenerate = action({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
-    // Simply call the generate action
-    return await ctx.runAction(internal.questions.generateInternal, {
+    // Get project details
+    const project = await ctx.runQuery(internal.prdProjects.getInternal, {
       projectId: args.projectId,
     });
+
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    // Generate new questions using Claude
+    const questions = await generateQuestions(
+      project.appName,
+      project.appDescription
+    );
+
+    // Save questions to database
+    await ctx.runMutation(internal.questions.save, {
+      projectId: args.projectId,
+      questions,
+    });
+
+    return { success: true, questionCount: questions.length };
   },
 });
 
 // Internal generate for use by other actions
-export const generateInternal = action({
+export const generateInternal = internalAction({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
     const project = await ctx.runQuery(internal.prdProjects.getInternal, {

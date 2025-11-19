@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as ai_claude from "../ai/claude.js";
+import type * as ai_perplexity from "../ai/perplexity.js";
 import type * as bookmarks from "../bookmarks.js";
 import type * as chat from "../chat.js";
 import type * as chatMessages from "../chatMessages.js";
@@ -34,6 +36,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "ai/claude": typeof ai_claude;
+  "ai/perplexity": typeof ai_perplexity;
   bookmarks: typeof bookmarks;
   chat: typeof chat;
   chatMessages: typeof chatMessages;
