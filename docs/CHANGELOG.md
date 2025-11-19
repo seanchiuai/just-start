@@ -3,9 +3,12 @@
 ## [Unreleased] - 2025-11-19
 
 ### Plans
-- Added `plan-10-ui-build.md` - UI build phase for all frontend components
-  - 7 phases: shared, questions, tech stack, validation, PRD, export/sharing, dashboard
-  - ~34 components, estimated 22-29 hours
+- Enhanced `plan-10-ui-build.md` with "Technical Editorial" design system
+  - Typography: Fraunces display + JetBrains Mono technical
+  - Colors: ink/paper/gold accent palette (not generic blue)
+  - Textures: dot-grid backgrounds, grain overlays
+  - Motion: typewriter effects, staggered reveals, orchestrated entrances
+  - 7 phases, ~34 components, estimated 28-35 hours
 
 ---
 
