@@ -1,11 +1,8 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-// The schema is entirely optional.
-// You can delete this file (schema.ts) and the
-// app will continue to work.
-// The schema provides more precise TypeScript types.
 export default defineSchema({
+  // Legacy tables
   numbers: defineTable({
     value: v.number(),
   }),
@@ -17,6 +14,111 @@ export default defineSchema({
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
+
+  // Just Start PRD Generator - Users
+  users: defineTable({
+    clerkId: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    prdsGenerated: v.number(),
+    subscription: v.object({
+      tier: v.string(),
+      credits: v.number(),
+    }),
+  }).index("by_clerk_id", ["clerkId"]),
+
+  // Just Start PRD Generator - Projects
+  prdProjects: defineTable({
+    userId: v.id("users"),
+    appName: v.string(),
+    appDescription: v.string(),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("questions"),
+      v.literal("research"),
+      v.literal("confirmation"),
+      v.literal("validation"),
+      v.literal("completed")
+    ),
+    currentStep: v.number(),
+    generationStatus: v.optional(
+      v.object({
+        stage: v.string(),
+        progress: v.number(),
+        message: v.string(),
+        updatedAt: v.number(),
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastAccessedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // Question Sets
+  questionSets: defineTable({
+    projectId: v.id("prdProjects"),
+    questions: v.array(
+      v.object({
+        id: v.number(),
+        question: v.string(),
+        options: v.array(v.string()),
+        default: v.string(),
+        category: v.string(),
+      })
+    ),
+    answers: v.optional(v.any()),
+    generatedAt: v.number(),
+    answeredAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  // Tech Stack Recommendations
+  techStackRecommendations: defineTable({
+    projectId: v.id("prdProjects"),
+    researchQueries: v.array(v.string()),
+    researchResults: v.string(),
+    recommendations: v.any(),
+    confirmedStack: v.optional(v.any()),
+    generatedAt: v.number(),
+    confirmedAt: v.optional(v.number()),
+  }).index("by_project", ["projectId"]),
+
+  // Compatibility Checks
+  compatibilityChecks: defineTable({
+    projectId: v.id("prdProjects"),
+    status: v.union(
+      v.literal("approved"),
+      v.literal("warnings"),
+      v.literal("critical")
+    ),
+    issues: v.array(
+      v.object({
+        severity: v.string(),
+        component: v.string(),
+        issue: v.string(),
+        recommendation: v.string(),
+      })
+    ),
+    summary: v.string(),
+    checkedAt: v.number(),
+  }).index("by_project", ["projectId"]),
+
+  // PRDs
+  prds: defineTable({
+    projectId: v.id("prdProjects"),
+    userId: v.id("users"),
+    content: v.any(),
+    version: v.number(),
+    generatedAt: v.number(),
+    exportedAt: v.optional(v.number()),
+    shareToken: v.optional(v.string()),
+    shareExpiresAt: v.optional(v.number()),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"])
+    .index("by_share_token", ["shareToken"]),
 
   // AI Chat System
   chatMessages: defineTable({

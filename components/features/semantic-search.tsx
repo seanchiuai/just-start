@@ -22,9 +22,7 @@ export function SemanticSearch({ projectId, limit = 10 }: SemanticSearchProps) {
 
   const generateEmbedding = useAction(api.embeddings.generateEmbedding);
   const searchResults = useQuery(
-    embedding
-      ? api.search.searchBookmarks
-      : "skip",
+    api.search.searchBookmarks,
     embedding
       ? {
           embedding,

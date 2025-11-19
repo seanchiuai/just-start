@@ -1,5 +1,89 @@
 # Changelog
 
+## [Unreleased] - 2025-11-18
+
+### Completed - Plan 01: Schema Setup & Dashboard
+
+**Schema Changes:**
+- Added `users` table with Clerk sync, subscription tracking
+- Added `prdProjects` table for project management with status workflow
+- Added `questionSets`, `techStackRecommendations`, `compatibilityChecks`, `prds` tables
+- Named project table `prdProjects` to avoid conflict with existing `projects` table
+
+**Convex Functions:**
+- `convex/users.ts` - User management (CRUD, credits, subscription)
+- `convex/prdProjects.ts` - Project CRUD, status updates, ownership checks
+- `convex/http.ts` - Clerk webhook endpoint for user sync
+
+**Frontend:**
+- `/app/(protected)/layout.tsx` - Protected routes layout
+- `/app/(protected)/dashboard/page.tsx` - User dashboard with project list, stats, empty state
+- `/app/(protected)/project/new/page.tsx` - New project form
+- `/app/(protected)/project/[projectId]/*` - Placeholder pages for questions, tech-stack, validation, prd
+
+**Dependencies:**
+- Added: `@anthropic-ai/sdk`, `react-hook-form`, `@hookform/resolvers`, `zod`, `jspdf`, `jszip`, `svix`
+
+**Fixes:**
+- Fixed pre-existing type errors in chat-sidebar, memory-panel, semantic-search, sidebar, folder-tree
+- Updated middleware to protect `/dashboard` and `/project` routes
+
+**Next Steps:** Plan 02 (app input form) or Plan 03 (AI questions)
+
+---
+
+### Added - Implementation Plans
+
+Created implementation plans in `.claude/plans/` (based on existing Next.js/Convex/Clerk template):
+
+1. **plan-01-schema-dashboard.md** - Schema setup, dependencies, dashboard page
+2. **plan-02-app-input.md** - App description form, validation
+3. **plan-03-ai-questions.md** - Claude Sonnet question generation
+4. **plan-04-tech-stack.md** - Perplexity research, Claude recommendations
+5. **plan-05-validation.md** - Tech stack compatibility checks
+6. **plan-06-prd-generation.md** - Claude Opus PRD generation
+7. **plan-07-export-sharing.md** - JSON/MD/PDF export, shareable links
+8. **plan-08-progress-realtime.md** - Auto-save, resume, real-time status
+9. **plan-09-landing-page.md** - Marketing page, SEO
+
+**Execution order:** 01 → 02-06 (wizard flow) → 07-09 (polish)
+
+---
+
+### Documentation - PRD Alignment
+
+Updated all docs to align with Just Start PRD (AI-powered PRD generator):
+
+**frontend-architecture.md:**
+- Added wizard flow route structure (`/project/[id]/questions|tech-stack|confirmation|prd`)
+- Added step-by-step PRD generation flow documentation
+- Added state management patterns for multi-step wizard
+- Added progress saving pattern with Convex mutations
+
+**convex-patterns.md:**
+- Added Just Start data models section with full schema
+- Added tables: `projects`, `questionSets`, `techStackRecommendations`, `compatibilityChecks`, `prds`
+- Added AI integration patterns with Claude Sonnet/Opus actions
+- Added Perplexity API research patterns
+
+**component-patterns.md:**
+- Added wizard step component pattern with progress indicator
+- Added AI processing status component for real-time updates
+- Added tech stack selection card with pros/cons display
+- Added multi-step form navigation patterns
+
+### Status Notes
+
+**Current codebase** contains bookmark manager features (folders, semantic search, chat) that need refactoring for PRD generator.
+
+**Required implementation:**
+- 🚧 Wizard flow pages (questions, tech-stack, confirmation, prd)
+- 🚧 AI integration (Claude Sonnet/Opus, Perplexity)
+- 🚧 PRD export (JSON, Markdown, PDF)
+- 🚧 Shareable PRD links with expiration
+
+---
+
 ## [Unreleased] - 2025-11-17
 
 ### Added - Tech Stack Agents

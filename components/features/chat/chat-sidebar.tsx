@@ -71,7 +71,7 @@ export function ChatSidebar({ isOpen, onClose }: ChatSidebarProps) {
       window.confirm("Are you sure you want to clear the conversation history?")
     ) {
       try {
-        await clearHistory();
+        await clearHistory({});
         toast.success("Chat history cleared");
       } catch (error) {
         console.error("Failed to clear history:", error);

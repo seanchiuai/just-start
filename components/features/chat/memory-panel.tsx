@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { X, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -17,7 +18,7 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
   const [newValue, setNewValue] = useState("");
   const [memoryType, setMemoryType] = useState<"preference" | "context">("preference");
 
-  const memories = useQuery(api.memory.getUserMemories);
+  const memories = useQuery(api.memory.getUserMemories, {});
   const saveMemory = useMutation(api.memory.saveMemory);
   const deleteMemory = useMutation(api.memory.deleteMemory);
 
@@ -42,7 +43,7 @@ export function MemoryPanel({ isOpen, onClose }: MemoryPanelProps) {
     }
   };
 
-  const handleDelete = async (memoryId: string) => {
+  const handleDelete = async (memoryId: Id<"userMemory">) => {
     try {
       await deleteMemory({ memoryId });
       toast.success("Memory deleted");

@@ -121,3 +121,185 @@ function Form() {
 - Use pre-built components from `/components/ui`
 - Customize via className prop
 - Compose components for complex UI
+
+## Wizard Step Component Pattern
+
+### Multi-Step Form Structure
+```tsx
+"use client";
+
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
+interface WizardStepProps {
+  projectId: Id<"projects">;
+  currentStep: number;
+  totalSteps: number;
+  onNext: () => void;
+  onBack: () => void;
+}
+
+function WizardStep({ projectId, currentStep, totalSteps, onNext, onBack }: WizardStepProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const saveProgress = useMutation(api.projects.updateStep);
+
+  const handleNext = async () => {
+    setIsLoading(true);
+    try {
+      await saveProgress({ projectId, step: currentStep + 1 });
+      onNext();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Progress indicator */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Step {currentStep} of {totalSteps}</span>
+          <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
+        </div>
+        <Progress value={(currentStep / totalSteps) * 100} />
+      </div>
+
+      {/* Step content */}
+      <div className="min-h-[400px]">
+        {/* Step-specific content here */}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          disabled={currentStep === 1}
+        >
+          Back
+        </Button>
+        <Button onClick={handleNext} disabled={isLoading}>
+          {isLoading ? "Saving..." : "Next"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+```
+
+### AI Processing Status Component
+```tsx
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface ProcessingStatusProps {
+  stages: string[];
+  currentStage: number;
+}
+
+function ProcessingStatus({ stages, currentStage }: ProcessingStatusProps) {
+  return (
+    <div className="space-y-4">
+      {stages.map((stage, index) => (
+        <div key={stage} className="flex items-center gap-3">
+          {index < currentStage ? (
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          ) : index === currentStage ? (
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          ) : (
+            <Circle className="h-5 w-5 text-muted-foreground" />
+          )}
+          <span className={index <= currentStage ? "text-foreground" : "text-muted-foreground"}>
+            {stage}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Usage for PRD generation
+<ProcessingStatus
+  stages={[
+    "Analyzing description...",
+    "Generating questions...",
+    "Researching tech stacks...",
+    "Validating compatibility...",
+    "Writing PRD..."
+  ]}
+  currentStage={2}
+/>
+```
+
+### Tech Stack Selection Card
+```tsx
+interface TechStackCardProps {
+  category: string;
+  recommendation: {
+    technology: string;
+    reasoning: string;
+    pros: string[];
+    cons: string[];
+  };
+  alternatives: string[];
+  selected: string;
+  onSelect: (tech: string) => void;
+}
+
+function TechStackCard({
+  category,
+  recommendation,
+  alternatives,
+  selected,
+  onSelect
+}: TechStackCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{category}</CardTitle>
+        <CardDescription>{recommendation.reasoning}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Select value={selected} onValueChange={onSelect}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={recommendation.technology}>
+              {recommendation.technology} (Recommended)
+            </SelectItem>
+            {alternatives.map(alt => (
+              <SelectItem key={alt} value={alt}>{alt}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {selected === recommendation.technology && (
+          <div className="mt-4 space-y-2">
+            <div>
+              <h4 className="text-sm font-medium text-green-600">Pros</h4>
+              <ul className="text-sm text-muted-foreground">
+                {recommendation.pros.map(pro => (
+                  <li key={pro}>• {pro}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-amber-600">Cons</h4>
+              <ul className="text-sm text-muted-foreground">
+                {recommendation.cons.map(con => (
+                  <li key={con}>• {con}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```

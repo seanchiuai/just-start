@@ -923,6 +923,173 @@ export default defineSchema({
 });
 \`\`\`
 
+## Just Start Data Models
+
+### PRD Generator Schema
+```ts
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
+
+const applicationTables = {
+  // User project tracking
+  projects: defineTable({
+    userId: v.string(),
+    appName: v.string(),
+    appDescription: v.string(),
+    status: v.union(
+      v.literal("draft"),
+      v.literal("questions"),
+      v.literal("research"),
+      v.literal("confirmation"),
+      v.literal("completed")
+    ),
+    currentStep: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_status", ["userId", "status"]),
+
+  // AI-generated questions for each project
+  questionSets: defineTable({
+    projectId: v.id("projects"),
+    questions: v.array(v.object({
+      id: v.number(),
+      question: v.string(),
+      options: v.array(v.string()),
+      default: v.string(),
+    })),
+    answers: v.optional(v.record(v.string(), v.string())),
+  }).index("by_project", ["projectId"]),
+
+  // Tech stack recommendations
+  techStackRecommendations: defineTable({
+    projectId: v.id("projects"),
+    researchQueries: v.array(v.string()),
+    researchResults: v.string(),
+    recommendations: v.object({
+      frontend: v.any(),
+      backend: v.any(),
+      database: v.any(),
+      auth: v.any(),
+      hosting: v.any(),
+    }),
+    confirmedStack: v.optional(v.any()),
+  }).index("by_project", ["projectId"]),
+
+  // Compatibility validation results
+  compatibilityChecks: defineTable({
+    projectId: v.id("projects"),
+    status: v.union(
+      v.literal("approved"),
+      v.literal("warnings"),
+      v.literal("critical")
+    ),
+    issues: v.array(v.object({
+      severity: v.string(),
+      component: v.string(),
+      issue: v.string(),
+      recommendation: v.string(),
+    })),
+    summary: v.string(),
+  }).index("by_project", ["projectId"]),
+
+  // Generated PRD documents
+  prds: defineTable({
+    projectId: v.id("projects"),
+    userId: v.string(),
+    content: v.any(), // Full structured JSON PRD
+    version: v.number(),
+    shareToken: v.optional(v.string()),
+    shareExpiresAt: v.optional(v.number()),
+  })
+    .index("by_project", ["projectId"])
+    .index("by_user", ["userId"])
+    .index("by_share_token", ["shareToken"]),
+};
+
+export default defineSchema({
+  ...authTables,
+  ...applicationTables,
+});
+```
+
+### Key Convex Actions for AI Integration
+```ts
+// convex/ai.ts
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic();
+
+// Generate clarifying questions using Claude Sonnet
+export const generateQuestions = action({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    const project = await ctx.runQuery(internal.projects.getInternal, {
+      projectId: args.projectId,
+    });
+
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      messages: [{
+        role: "user",
+        content: `Generate 4-6 clarifying questions for this app idea:
+          Name: ${project.appName}
+          Description: ${project.appDescription}
+
+          Return as JSON array with id, question, options[], and default.`
+      }],
+    });
+
+    // Save questions to Convex
+    await ctx.runMutation(internal.questions.save, {
+      projectId: args.projectId,
+      questions: JSON.parse(response.content[0].text),
+    });
+  },
+});
+
+// Generate PRD using Claude Opus
+export const generatePRD = action({
+  args: { projectId: v.id("projects") },
+  handler: async (ctx, args) => {
+    // Load all project context
+    const [project, questions, techStack, compatibility] = await Promise.all([
+      ctx.runQuery(internal.projects.getInternal, { projectId: args.projectId }),
+      ctx.runQuery(internal.questions.getByProject, { projectId: args.projectId }),
+      ctx.runQuery(internal.techStack.getByProject, { projectId: args.projectId }),
+      ctx.runQuery(internal.compatibility.getByProject, { projectId: args.projectId }),
+    ]);
+
+    const response = await anthropic.messages.create({
+      model: "claude-opus-4-20250514",
+      max_tokens: 8192,
+      messages: [{
+        role: "user",
+        content: `Generate a comprehensive PRD for:
+          App: ${project.appName}
+          Description: ${project.appDescription}
+          Answers: ${JSON.stringify(questions.answers)}
+          Tech Stack: ${JSON.stringify(techStack.confirmedStack)}
+
+          Include: overview, goals, personas, features (MVP/nice-to-have),
+          architecture, data models, API structure, UI/UX considerations.`
+      }],
+    });
+
+    // Save PRD
+    await ctx.runMutation(internal.prds.create, {
+      projectId: args.projectId,
+      userId: project.userId,
+      content: JSON.parse(response.content[0].text),
+    });
+  },
+});
+```
+
 # Convex Components
 Convex Components package up code and data in a sandbox that allows you to confidently and quickly add new features to your backend.
 Convex Components are like mini self-contained Convex backends, and installing them is always safe. They can't read your app's tables or call your app's functions unless you pass them in explicitly.

@@ -1,0 +1,391 @@
+{
+  "projectOverview": {
+    "productName": "Just Start",
+    "description": "Just Start is an AI-powered PRD (Product Requirements Document) generator that helps entrepreneurs and developers think deeply about their project before jumping into development. Through an intelligent question-and-answer flow, it guides users to clarify their vision, research optimal tech stacks, and generate comprehensive product specifications—transforming vague ideas into actionable development plans.",
+    "targetAudience": "Non-technical founders, solo developers, and small development teams who want to validate and structure their app ideas before writing code. Particularly valuable for first-time builders who may lack experience in product planning or technical architecture decisions."
+  },
+  "purposeAndGoals": {
+    "problemStatement": "Most developers and entrepreneurs rush into coding without properly thinking through their product strategy, tech stack choices, and feature requirements. This leads to wasted time building the wrong features, choosing incompatible technologies, discovering major flaws mid-development, and ultimately rebuilding entire applications. The enthusiasm to 'just start coding' often results in technical debt, scope creep, and abandoned projects.",
+    "solution": "Just Start acts as a thoughtful co-pilot that slows users down (in a good way) by asking the right questions upfront. It uses AI to generate clarifying questions based on the user's initial app description, researches current best practices for tech stack recommendations, validates technology compatibility, and outputs a production-ready PRD in a structured format. This ensures users have a solid plan before writing their first line of code.",
+    "keyObjectives": [
+      "Help users articulate their app vision clearly through guided questioning",
+      "Reduce technical decision paralysis by providing researched, justified tech stack recommendations",
+      "Prevent costly mid-development pivots by identifying potential issues early",
+      "Generate professional-grade PRDs that serve as both planning documents and developer handoff materials",
+      "Make product planning accessible to non-technical founders who may hire developers later",
+      "Save 10-20 hours of research and documentation time per project"
+    ]
+  },
+  "userPersonasAndUseCases": {
+    "primaryPersona": {
+      "description": "Alex, the Solo Developer/Indie Hacker: A full-stack developer with 2-3 years experience who has great ideas but struggles with proper planning. Has abandoned 3-4 side projects after realizing fundamental architecture issues. Wants to build SaaS products but lacks experience in comprehensive product planning. Values tools that help think through decisions without slowing down too much.",
+      "useCases": [
+        "Alex has an idea for a real-time collaboration tool but isn't sure whether to use WebSockets, Convex, or Firebase",
+        "Starts filling out the app description and receives 4-6 clarifying questions about core features, scale expectations, and user workflows",
+        "Reviews AI-generated tech stack recommendations with pros/cons specific to their project",
+        "Gets warnings about potential compatibility issues (e.g., 'Next.js 14 requires Node 18+')",
+        "Receives a complete JSON PRD that can be shared with contractors or used as a personal development roadmap",
+        "Uses the PRD to stay focused on MVP features and avoid scope creep during development"
+      ]
+    },
+    "secondaryPersona": {
+      "description": "Maria, the Non-Technical Founder: Has domain expertise in healthcare/education/finance but zero coding experience. Has a clear vision for solving a problem in their industry. Plans to hire freelance developers or use no-code tools initially. Needs to communicate requirements clearly to technical team members.",
+      "useCases": [
+        "Maria describes a patient appointment scheduling app for small clinics",
+        "Answers guided questions about HIPAA requirements, user roles, and integration needs",
+        "Receives tech stack recommendations written in plain language with explanations",
+        "Gets a PRD document that can be handed directly to freelance developers on Upwork",
+        "Uses the PRD to get accurate time/cost estimates from multiple development agencies",
+        "References the document during development to ensure contractors stay on track"
+      ]
+    }
+  },
+  "techStack": {
+    "frontend": {
+      "technology": "Next.js 15 with App Router, TypeScript, Tailwind CSS 4, shadcn/ui",
+      "reasoning": "Next.js 15 with App Router provides the best developer experience for building modern React applications with server-side rendering, excellent SEO, and built-in optimizations. The App Router architecture enables better code organization and performance through React Server Components. TypeScript ensures type safety across the entire application, catching errors before runtime. Tailwind CSS 4 offers utility-first styling with excellent performance, while shadcn/ui provides beautiful, accessible components that can be customized to match your brand without vendor lock-in.",
+      "prosForThisProject": [
+        "Server Components in App Router reduce JavaScript bundle size by rendering form steps on the server",
+        "Streaming and Suspense enable progressive loading of AI-generated content, improving perceived performance",
+        "Built-in SEO optimizations help Just Start rank for searches like 'PRD generator' or 'app planning tool'",
+        "TypeScript catches errors when building complex multi-step form logic",
+        "shadcn/ui components (forms, buttons, dialogs) accelerate UI development without sacrificing customization",
+        "File-based routing makes it easy to organize different stages (questions → tech stack → PRD output)",
+        "Middleware support enables authentication checks and rate limiting at the edge"
+      ],
+      "consForThisProject": [
+        "Next.js 15 is relatively new (released Oct 2024), so some third-party libraries may have compatibility issues",
+        "Learning curve for App Router if team is only familiar with Pages Router",
+        "Server Components require mental shift in how to structure data fetching",
+        "Deployment requires understanding of Node.js server environment (not purely static)"
+      ]
+    },
+    "backend": {
+      "technology": "Convex (real-time database + serverless functions)",
+      "reasoning": "Convex is purpose-built for TypeScript applications and provides a unified backend platform that eliminates the need for separate database, API layer, and WebSocket infrastructure. Its reactive programming model means UI updates automatically when data changes—perfect for a multi-step wizard where progress needs to be saved and synced. Built-in TypeScript support means your database schema, queries, and mutations are all type-safe from frontend to backend. Serverless functions scale automatically without managing infrastructure.",
+      "prosForThisProject": [
+        "Real-time reactivity ensures PRD generation progress updates instantly across tabs/devices",
+        "TypeScript-first design provides end-to-end type safety from UI to database",
+        "No need to set up REST/GraphQL APIs—functions are directly callable from frontend",
+        "Built-in authentication integration with Clerk (first-class support)",
+        "Automatic scaling handles traffic spikes without configuration",
+        "Document database model fits unstructured PRD data perfectly",
+        "Scheduled functions enable async AI processing without managing job queues",
+        "Built-in file storage for potential future features (uploading mockups, documents)",
+        "Excellent developer experience—changes sync automatically to local and deployed instances"
+      ],
+      "consForThisProject": [
+        "Relatively new platform (launched 2021), smaller ecosystem than Firebase/Supabase",
+        "Vendor lock-in—migrating away from Convex would require significant refactoring",
+        "Cost can scale quickly with high usage (though generous free tier covers most MVPs)",
+        "Limited to NoSQL data model—no SQL joins or complex queries (though usually not needed for this use case)",
+        "Requires learning Convex-specific patterns if team only knows traditional REST APIs"
+      ]
+    },
+    "database": {
+      "technology": "Convex (integrated NoSQL database)",
+      "reasoning": "Convex provides an integrated document database that's optimized for real-time applications. Since it's part of the Convex platform, there's no separate database to configure, secure, or scale. The schema is defined in TypeScript code, which provides type safety and makes it easy to evolve the data model. Documents can have flexible schemas, which is perfect for storing varied PRD structures as they evolve.",
+      "prosForThisProject": [
+        "No separate database setup required—it's built into Convex",
+        "Document model naturally represents PRD structure (nested objects, arrays)",
+        "Schema validation ensures data consistency without complex migrations",
+        "Indexes automatically optimize query performance",
+        "Real-time subscriptions mean users see PRD updates instantly",
+        "Strongly consistent reads/writes prevent race conditions in multi-step flows",
+        "Built-in full-text search for finding past PRDs",
+        "Automatic backups and point-in-time recovery"
+      ],
+      "consForThisProject": [
+        "Cannot use traditional SQL queries if team prefers relational thinking",
+        "Advanced analytics queries may require exporting to external warehouse",
+        "Learning curve for developers only familiar with SQL databases",
+        "Vendor lock-in to Convex platform"
+      ]
+    },
+    "authentication": {
+      "technology": "Clerk",
+      "reasoning": "Clerk is the best authentication solution for modern Next.js applications. It provides drop-in React components, handles all security best practices, and offers a delightful user experience out of the box. Native integration with both Next.js 15 and Convex makes it the obvious choice. Clerk's pricing model (pay per active user) is founder-friendly for MVPs. The developer experience is exceptional with TypeScript support, comprehensive docs, and active community.",
+      "prosForThisProject": [
+        "Pre-built UI components (<SignIn>, <SignUp>, <UserButton>) accelerate development",
+        "Native Next.js 15 App Router support with async auth() helper",
+        "First-class Convex integration via webhooks for user sync",
+        "Handles complex auth flows (email verification, password reset, MFA) automatically",
+        "Social logins (Google, GitHub) can be enabled with one click",
+        "User management dashboard included—no need to build admin panel",
+        "Session management and JWT handling completely automated",
+        "Excellent documentation and TypeScript support",
+        "Free tier covers 10,000 monthly active users",
+        "Device management and security features built-in"
+      ],
+      "consForThisProject": [
+        "Some vendor lock-in—switching auth providers later requires refactoring",
+        "Costs scale with active users (though predictable and transparent)",
+        "Customizing auth UI beyond provided components requires more effort",
+        "Requires configuring webhooks to sync with Convex (though well-documented)"
+      ]
+    },
+    "hosting": {
+      "technology": "Vercel (Frontend) + Convex Cloud (Backend/Database)",
+      "reasoning": "Vercel is built by the Next.js team and provides the best deployment experience for Next.js applications. Zero-config deployment, automatic HTTPS, edge functions, and preview deployments for every branch make development workflows incredibly smooth. Convex Cloud is automatically included with Convex—no separate hosting to manage. Both platforms offer generous free tiers and scale automatically.",
+      "prosForThisProject": [
+        "Vercel deployment takes 30 seconds with 'vercel deploy' command",
+        "Automatic preview URLs for every pull request enable easy testing",
+        "Edge network ensures fast load times globally",
+        "Free SSL certificates with automatic renewal",
+        "Built-in analytics show performance metrics and usage",
+        "Convex automatically deploys when you push to Convex cloud",
+        "No server management required for either platform",
+        "Both integrate seamlessly with GitHub for CI/CD",
+        "Generous free tiers (Vercel: unlimited personal projects, Convex: 1M function calls/month)"
+      ],
+      "consForThisProject": [
+        "Vercel's free tier has bandwidth limits (100GB/month) which may be exceeded with high traffic",
+        "Vendor lock-in to Vercel's platform (though Next.js can be deployed elsewhere)",
+        "Both platforms charge for usage beyond free tier—costs can scale unpredictably",
+        "Cold starts on serverless functions can cause slight delays (though minimal on Vercel)"
+      ]
+    },
+    "additionalTools": [
+      {
+        "category": "AI Integration",
+        "technology": "Anthropic Claude API (Sonnet 4 for questions/research, Opus 4 for PRD generation)",
+        "reasoning": "Claude provides the best balance of quality, cost, and reliability for complex reasoning tasks. Sonnet 4 is fast and cost-effective for generating questions and research queries. Opus 4 produces higher-quality comprehensive PRDs. Anthropic's API is reliable with good rate limits and clear pricing."
+      },
+      {
+        "category": "AI Research",
+        "technology": "Perplexity API",
+        "reasoning": "Perplexity excels at real-time web research with citations. Perfect for researching current tech stack trends, compatibility issues, and best practices. Provides up-to-date information that Claude's training data may not include."
+      },
+      {
+        "category": "Form Validation",
+        "technology": "Zod + React Hook Form",
+        "reasoning": "Zod provides TypeScript-first schema validation that integrates perfectly with Convex. React Hook Form offers excellent performance and DX for complex multi-step forms. Together they ensure data quality before sending to AI APIs."
+      },
+      {
+        "category": "UI Components",
+        "technology": "shadcn/ui + Radix UI",
+        "reasoning": "shadcn/ui provides copy-paste components built on Radix UI primitives. No npm package to install—you own the code. Fully customizable with Tailwind CSS. Accessible by default (WCAG compliant). Perfect for building professional-looking forms, modals, and data displays."
+      },
+      {
+        "category": "Rate Limiting",
+        "technology": "Upstash Redis (via Vercel integration)",
+        "reasoning": "Prevents API abuse by limiting requests per user/IP. Upstash's serverless Redis is perfect for Vercel deployments. Free tier covers most MVPs. No server management required."
+      },
+      {
+        "category": "Monitoring",
+        "technology": "Sentry (errors) + Vercel Analytics (performance)",
+        "reasoning": "Sentry catches and tracks frontend/backend errors with detailed context. Free tier sufficient for MVP. Vercel Analytics provides built-in Core Web Vitals tracking at no cost."
+      },
+      {
+        "category": "Email",
+        "technology": "Resend",
+        "reasoning": "Modern email API built for developers. Simple API, excellent deliverability, React email template support. Perfect for sending PRD documents, auth emails via Clerk, and user notifications. Free tier: 3,000 emails/month."
+      }
+    ]
+  },
+  "features": {
+    "mvpFeatures": [
+      {
+        "name": "App Idea Input & Analysis",
+        "description": "Users enter their app name and description in a clean form. The system analyzes the input and identifies what information is missing or unclear. Shows immediate feedback on whether enough detail was provided.",
+        "priority": "must-have"
+      },
+      {
+        "name": "AI-Generated Clarification Questions",
+        "description": "Based on the initial description, generate 4-6 multiple-choice questions that address the most critical gaps in understanding. Questions should cover: core features, target audience, scale expectations, key workflows, and technical requirements. Each question has 3-5 options with a smart default selected.",
+        "priority": "must-have"
+      },
+      {
+        "name": "Tech Stack Research & Recommendations",
+        "description": "After user answers questions, the system researches current best practices using Perplexity API. Generates specific tech stack recommendations (frontend, backend, database, auth, hosting) with reasoning for each choice. Presents pros/cons specific to the user's project, not generic comparisons.",
+        "priority": "must-have"
+      },
+      {
+        "name": "Tech Stack Confirmation & Modification",
+        "description": "Present recommended tech stack in an intuitive UI where users can accept, modify, or swap technologies. Shows compatibility warnings if user selects incompatible combinations (e.g., 'Next.js 14 requires Node 18+', 'This auth provider doesn't have Convex integration').",
+        "priority": "must-have"
+      },
+      {
+        "name": "Compatibility Validation",
+        "description": "Before generating PRD, validate the confirmed tech stack using Perplexity API. Check for version compatibility, deprecated technologies, integration issues, and production readiness. Return status: approved, warnings, or critical issues. Block PRD generation if critical issues exist.",
+        "priority": "must-have"
+      },
+      {
+        "name": "Comprehensive PRD Generation",
+        "description": "Generate a structured JSON PRD containing: project overview, purpose & goals, user personas, detailed tech stack analysis, MVP features vs nice-to-have features, technical architecture, data models, API structure, UI/UX considerations. PRD should be actionable—developers can start building immediately from this document.",
+        "priority": "must-have"
+      },
+      {
+        "name": "PRD Export & Sharing",
+        "description": "Allow users to export PRD as JSON, Markdown, or PDF. Generate shareable links that expire after 7 days. Enable copying to clipboard with formatted markdown. Provide 'Download All' option that includes PRD plus tech stack summary.",
+        "priority": "must-have"
+      },
+      {
+        "name": "User Authentication & Accounts",
+        "description": "Users can sign up with email or social logins (Google, GitHub). Save PRDs to user accounts. Enable revisiting past PRDs. Show usage stats (PRDs generated, credits remaining if implementing usage limits).",
+        "priority": "must-have"
+      },
+      {
+        "name": "Progress Saving & Resume",
+        "description": "Automatically save progress after each step. Allow users to close browser and resume later. Show progress indicator (Step 1 of 5). Enable jumping back to edit previous answers before PRD generation.",
+        "priority": "must-have"
+      },
+      {
+        "name": "Real-time Status Updates",
+        "description": "During AI processing (which can take 30-60 seconds), show real-time updates: 'Analyzing your description...', 'Generating questions...', 'Researching tech stacks...', 'Validating compatibility...', 'Writing PRD...'. Include progress percentage and estimated time remaining.",
+        "priority": "must-have"
+      }
+    ],
+    "niceToHaveFeatures": [
+      {
+        "name": "PRD Templates by Industry",
+        "description": "Pre-built question sets and PRD structures for common app types: SaaS, marketplace, social network, mobile app, e-commerce. Users can select a template to get more relevant questions and recommendations.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "Collaborative PRD Editing",
+        "description": "Allow multiple team members to view and comment on PRDs. Real-time presence indicators. Comments and suggested edits. Version history showing who changed what and when.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "Tech Stack Alternatives Comparison",
+        "description": "For each tech recommendation, show 2-3 alternatives with side-by-side comparison. Let users drill down into detailed comparisons (pricing, learning curve, ecosystem, performance). Include community ratings and recent trends.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "AI Chat for PRD Refinement",
+        "description": "After PRD is generated, users can chat with AI to refine specific sections: 'Add more detail about authentication flow', 'Expand the user personas section', 'Add a feature for social sharing'. AI updates the PRD in real-time.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "Cost Estimation",
+        "description": "Based on confirmed tech stack and features, generate estimated costs: development time (hours), infrastructure costs (monthly), third-party services costs. Breakdown by category with ranges (best case, average, worst case).",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "Integration with Project Management Tools",
+        "description": "Export PRD features directly to Linear, Jira, or Notion as tickets/tasks. Auto-generate sprint planning based on MVP features. Include acceptance criteria and technical requirements in each ticket.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "PRD Review by Experts",
+        "description": "Option to request human review of PRD by experienced developers/product managers (paid feature). Get feedback on technical decisions, feature prioritization, and potential issues. Turnaround time: 24-48 hours.",
+        "priority": "nice-to-have"
+      },
+      {
+        "name": "Public PRD Gallery",
+        "description": "Users can publish their PRDs anonymously to a public gallery. Great for inspiration and seeing how others structured similar projects. Includes upvoting and commenting. Search and filter by tech stack, industry, or complexity.",
+        "priority": "nice-to-have"
+      }
+    ],
+    "outOfScope": [
+      "Actual code generation—Just Start produces specifications, not code",
+      "Project management during development—focus is on pre-development planning",
+      "Design mockups or wireframes—scope is limited to written specifications",
+      "Direct integration with code repositories (GitHub, GitLab)—PRD is a document, not a dev tool",
+      "Real-time collaboration features in MVP—single-user experience is sufficient initially",
+      "Mobile native apps—web app only, though responsive for mobile browsers",
+      "Video tutorials or courses on product planning—documentation only",
+      "Marketplace for hiring developers—focus is on planning, not execution",
+      "Budget management or financial projections beyond basic cost estimates",
+      "Legal compliance checking (GDPR, HIPAA, etc.)—users responsible for understanding requirements"
+    ]
+  },
+  "technicalArchitecture": {
+    "systemDesign": "Just Start follows a multi-step wizard architecture with persistent state management. The frontend (Next.js) handles routing and UI, while Convex manages all backend logic, database operations, and AI orchestration. The system uses a pipeline architecture: User Input → Question Generation (Claude) → User Answers → Research (Perplexity) → Tech Recommendations (Claude) → User Confirmation → Validation (Perplexity) → PRD Generation (Claude Opus). Each step is atomic and resumable—state is persisted to Convex after every action. Convex functions handle API calls to Claude/Perplexity with retry logic and rate limiting. Real-time reactivity ensures UI updates immediately when backend processing completes. Clerk webhooks sync user data to Convex on signup. Middleware protects routes requiring authentication.",
+    "dataModels": [
+      {
+        "modelName": "User",
+        "fields": [
+          "userId: string (Clerk user ID)",
+          "email: string",
+          "name: string",
+          "imageUrl: string",
+          "createdAt: timestamp",
+          "updatedAt: timestamp",
+          "prdsGenerated: number (usage tracking)",
+          "subscription: { tier: string, credits: number }"
+        ]
+      },
+      {
+        "modelName": "Project",
+        "fields": [
+          "projectId: string (unique ID)",
+          "userId: string (ref to User)",
+          "appName: string",
+          "appDescription: string",
+          "status: enum ('draft', 'questions', 'research', 'confirmation', 'completed')",
+          "currentStep: number (1-5)",
+          "createdAt: timestamp",
+          "updatedAt: timestamp",
+          "lastAccessedAt: timestamp"
+        ]
+      },
+      {
+        "modelName": "QuestionSet",
+        "fields": [
+          "projectId: string (ref to Project)",
+          "questions: array of { id: number, question: string, options: string[], default: string }",
+          "answers: object (map of question_id → selected_answer)",
+          "generatedAt: timestamp"
+        ]
+      },
+      {
+        "modelName": "TechStackRecommendation",
+        "fields": [
+          "projectId: string (ref to Project)",
+          "researchQueries: string[] (Perplexity queries)",
+          "researchResults: string (raw Perplexity output)",
+          "recommendations: object { frontend: {...}, backend: {...}, database: {...}, auth: {...}, hosting: {...} }",
+          "confirmedStack: object (user's final selections)",
+          "generatedAt: timestamp",
+          "confirmedAt: timestamp"
+        ]
+      },
+      {
+        "modelName": "CompatibilityCheck",
+        "fields": [
+          "projectId: string (ref to Project)",
+          "status: enum ('approved', 'warnings', 'critical')",
+          "issues: array of { severity: string, component: string, issue: string, recommendation: string }",
+          "summary: string",
+          "checkedAt: timestamp"
+        ]
+      },
+      {
+        "modelName": "PRD",
+        "fields": [
+          "prdId: string (unique ID)",
+          "projectId: string (ref to Project)",
+          "userId: string (ref to User)",
+          "content: object (full structured JSON PRD)",
+          "version: number",
+          "generatedAt: timestamp",
+          "exportedAt: timestamp",
+          "shareToken: string (for shareable links)",
+          "shareExpiresAt: timestamp"
+        ]
+      }
+    ],
+    "apiStructure": "Just Start uses Convex functions instead of traditional REST APIs. Frontend calls Convex functions directly using useQuery (reactive reads) and useMutation (writes). Key Convex functions: [Queries] getProject(projectId), getUserProjects(userId), getPRD(prdId), getSharedPRD(shareToken). [Mutations] createProject(userId, appName, appDescription), updateProjectStep(projectId, step), saveAnswers(projectId, answers), confirmTechStack(projectId, stack), exportPRD(prdId, format). [Actions] generateQuestions(projectId) → calls Claude API, researchTechStack(projectId) → calls Perplexity API, validateCompatibility(projectId) → calls Perplexity API, generatePRD(projectId) → calls Claude Opus API. All actions include retry logic, rate limiting, and error handling. Status updates are written to Convex tables and reactively update the UI.",
+    "thirdPartyIntegrations": [
+      "Anthropic Claude API: Question generation, research query generation, tech presentation, PRD generation. Use Sonnet 4 for speed (steps 1-3), Opus 4 for quality (step 5).",
+      "Perplexity API: Real-time web research for tech stacks and compatibility validation. Llama 3.1 Sonar model with online search enabled.",
+      "Clerk: User authentication, session management, user profile data. Webhooks sync user data to Convex on signup/update.",
+      "Upstash Redis: Rate limiting for API calls (prevent abuse). Serverless Redis accessible from Vercel Edge Functions.",
+      "Resend: Email delivery for transactional emails (welcome, PRD ready, share links). React email templates for beautiful formatting.",
+      "Sentry: Error tracking and monitoring. Captures frontend/backend errors with context (user ID, project ID, step).",
+      "Vercel Analytics: Performance monitoring, Core Web Vitals tracking. Built-in, no additional setup required."
+    ]
+  },
+  "uiUxConsiderations": {
+    "designApproach": "Just Start uses a clean, minimal design that reduces cognitive load during a potentially overwhelming planning process. The UI should feel like a conversation with a helpful advisor, not a complex form. Progressive disclosure: show only what's needed at each step. Use micro-interactions and animations to provide feedback during AI processing. Emphasize clarity over cleverness—users should always know where they are, what's happening, and what comes next. Design inspiration: Linear's clean workflows, Stripe's documentation clarity, and Notion's delightful interactions. Color palette: primary blue for CTAs, soft grays for backgrounds, green for success states, amber for warnings, red for critical issues.",
+    "keyUserFlows": [
+      "New Project Flow: Land on homepage → Click 'Start New Project' → Enter app name & description → Submit → See progress indicator → Review generated questions → Select answers (or customize) → Submit answers → Watch research in progress → Review tech recommendations → Modify if needed → Confirm selections → See compatibility check → (If warnings) Review and decide to proceed → Watch PRD generation → View completed PRD → Export or save",
+      "Resume Project Flow: Sign in → View dashboard with saved projects → Click project card → Jump to last incomplete step → Continue from there → Complete remaining steps",
+      "Share PRD Flow: Open completed PRD → Click 'Share' → Generate link (expires in 7 days) → Copy link → Share with team/developers → Recipients can view read-only version without signing up",
+      "Modify and Regenerate Flow: View completed PRD → Click 'Edit' → Go back to any previous step → Modify answers or tech stack → Confirm changes → System validates again → Regenerate PRD → Compare old vs new versions → Choose to keep or discard changes"
+    ],
+    "styleGuidelines": "Typography: Use Inter or Geist for UI text (clean, highly readable). JetBrains Mono for code snippets in PRDs. Font sizes: 14px base, 12px for labels, 20-28px for headings. Spacing: 8px base unit, multiples of 8 for consistent rhythm. Components: Use shadcn/ui components for consistency (Button, Card, Dialog, Form, Progress, Tabs, Toast). Customize colors to match brand. Interactions: 200ms transitions for hover states, subtle scale on button press, loading spinners for async actions, toast notifications for success/error messages. Accessibility: WCAG AA compliant, keyboard navigation for all interactions, focus states clearly visible, color not the only indicator of state, alt text for all images. Responsive: Mobile-first design, stack content vertically on mobile, enlarge touch targets to 44x44px minimum, test on iPhone SE, Pixel, and iPad sizes."
+  }
+}

@@ -13,12 +13,15 @@ import type * as chat from "../chat.js";
 import type * as chatMessages from "../chatMessages.js";
 import type * as embeddings from "../embeddings.js";
 import type * as folders from "../folders.js";
+import type * as http from "../http.js";
 import type * as init from "../init.js";
 import type * as memory from "../memory.js";
 import type * as myFunctions from "../myFunctions.js";
+import type * as prdProjects from "../prdProjects.js";
 import type * as projects from "../projects.js";
 import type * as search from "../search.js";
 import type * as todos from "../todos.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -32,12 +35,15 @@ declare const fullApi: ApiFromModules<{
   chatMessages: typeof chatMessages;
   embeddings: typeof embeddings;
   folders: typeof folders;
+  http: typeof http;
   init: typeof init;
   memory: typeof memory;
   myFunctions: typeof myFunctions;
+  prdProjects: typeof prdProjects;
   projects: typeof projects;
   search: typeof search;
   todos: typeof todos;
+  users: typeof users;
 }>;
 
 /**
