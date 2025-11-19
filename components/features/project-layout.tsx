@@ -24,10 +24,19 @@ const maxWidthClasses = {
 
 export function ProjectLayout({ children, maxWidth = "3xl" }: ProjectLayoutProps) {
   const params = useParams();
-  
-  // Validate projectId exists and is a non-empty string before using it
+
+  // Validate projectId exists and is a non-empty string
   const rawProjectId = params.projectId;
-  if (!rawProjectId || typeof rawProjectId !== "string" || rawProjectId.trim() === "") {
+  const isValidProjectId = rawProjectId && typeof rawProjectId === "string" && rawProjectId.trim() !== "";
+
+  // Always call hooks unconditionally - skip query if projectId is invalid
+  const project = useQuery(
+    api.prdProjects.get,
+    isValidProjectId ? { projectId: rawProjectId as Id<"prdProjects"> } : "skip"
+  );
+
+  // Now we can do early returns after hooks
+  if (!isValidProjectId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -37,9 +46,6 @@ export function ProjectLayout({ children, maxWidth = "3xl" }: ProjectLayoutProps
       </div>
     );
   }
-  
-  const projectId = rawProjectId as Id<"prdProjects">;
-  const project = useQuery(api.prdProjects.get, { projectId });
 
   if (project === undefined) {
     return <div className="p-8">Loading...</div>;
