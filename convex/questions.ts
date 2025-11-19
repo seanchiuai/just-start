@@ -207,6 +207,12 @@ export const generate = action({
 export const regenerate = action({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
+    // Verify authentication
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
     // Get project details
     const project = await ctx.runQuery(internal.prdProjects.getInternal, {
       projectId: args.projectId,
@@ -216,19 +222,62 @@ export const regenerate = action({
       throw new Error("Project not found");
     }
 
-    // Generate new questions using Claude
-    const questions = await generateQuestions(
-      project.appName,
-      project.appDescription
-    );
-
-    // Save questions to database
-    await ctx.runMutation(internal.questions.save, {
-      projectId: args.projectId,
-      questions,
+    // Get user and verify authorization
+    const user = await ctx.runQuery(internal.users.getByClerkIdInternal, {
+      clerkId: identity.subject,
     });
 
-    return { success: true, questionCount: questions.length };
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (project.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    // Update project status to show we're regenerating
+    await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+      projectId: args.projectId,
+      stage: "generating_questions",
+      progress: 10,
+      message: "Regenerating questions...",
+    });
+
+    try {
+      // Generate new questions using Claude
+      const questions = await generateQuestions(
+        project.appName,
+        project.appDescription
+      );
+
+      // Update progress
+      await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+        projectId: args.projectId,
+        stage: "generating_questions",
+        progress: 80,
+        message: "Finalizing questions...",
+      });
+
+      // Save questions to database
+      await ctx.runMutation(internal.questions.save, {
+        projectId: args.projectId,
+        questions,
+      });
+
+      // Clear generation status
+      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+        projectId: args.projectId,
+      });
+
+      return { success: true, questionCount: questions.length };
+    } catch (error) {
+      // Clear generation status on error
+      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+        projectId: args.projectId,
+      });
+
+      throw error;
+    }
   },
 });
 

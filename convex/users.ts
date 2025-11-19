@@ -43,6 +43,17 @@ export const getInternal = internalQuery({
   },
 });
 
+// Internal: Get user by Clerk ID
+export const getByClerkIdInternal = internalQuery({
+  args: { clerkId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+  },
+});
+
 // Create or update user (called from Clerk webhook)
 export const upsertFromClerk = internalMutation({
   args: {
