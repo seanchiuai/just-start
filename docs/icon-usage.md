@@ -1,5 +1,7 @@
 # Icon Usage (lucide-react)
 
+**Note**: Use `lucide-react` exclusively. `@tabler/icons-react` is installed but deprecated - found only in `/bookmarks` route (scheduled for removal).
+
 ## Import Pattern
 ```tsx
 import { Icon1, Icon2, Icon3 } from "lucide-react";

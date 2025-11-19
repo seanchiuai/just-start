@@ -456,6 +456,50 @@ const messages = await ctx.db
 - Always add \`"use node";\` to the top of files containing actions that use Node.js built-in modules.
 - Files that contain \`"use node";\` should NEVER contain mutations or queries, only actions. Node actions can only be called from the client or from other actions.
 - Never use \`ctx.db\` inside of an action. Actions don't have access to the database.
+
+### Node.js Runtime Separation Pattern
+Separate Node.js actions into dedicated files:
+\`\`\`
+convex/
+├── prd.ts           # Queries, mutations (Convex runtime)
+├── prd.actions.ts   # Actions only ("use node")
+└── ai/
+    ├── claude.ts    # Claude API wrapper ("use node")
+    └── perplexity.ts # Perplexity API wrapper ("use node")
+\`\`\`
+
+### Progress Tracking Pattern
+Actions update generation status through the workflow:
+\`\`\`ts
+export const generate = internalAction({
+  args: { projectId: v.id("prdProjects") },
+  handler: async (ctx, args) => {
+    try {
+      // Update progress during long operations
+      await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
+        projectId: args.projectId,
+        stage: "generating_questions",
+        progress: 10,
+        message: "Analyzing your description...",
+      });
+
+      // ... perform work
+
+      // Clear status on completion
+      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+        projectId: args.projectId,
+      });
+    } catch (error) {
+      // Always clear status on error
+      await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
+        projectId: args.projectId,
+      });
+      throw error;
+    }
+  },
+});
+\`\`\`
+
 - Below is an example of the syntax for an action:
 
 \`\`\`ts
@@ -1229,3 +1273,37 @@ Convex has the following components:
 - \`proseMirror\`: A collaborative text editor component.
 - \`presence\`: A component for managing presence functionality, i.e., a live-updating list of users in a "room" including their status for when they were last online.
 
+# Current Implementation Status
+
+## Working Tables
+
+- \`users\` - User management with Clerk sync
+- \`prdProjects\` - PRD project tracking
+- \`questionSets\` - AI-generated questions
+- \`techStackRecommendations\` - Tech stack research/recommendations
+- \`compatibilityChecks\` - Validation results
+- \`prds\` - Generated PRD documents
+- \`chatMessages\` - AI chat messages
+- \`userMemory\` - User memory for AI context
+- \`projects\` - Bookmark projects
+- \`folders\` - Bookmark folders
+- \`bookmarks\` - Bookmarks with vector embeddings
+
+## Legacy Tables (Consider Removal)
+
+- \`todos\` - Unused demo table
+- \`numbers\` - Unused demo table
+
+## Required Environment Variables
+
+- \`OPENAI_API_KEY\` - Embeddings, chat
+- \`ANTHROPIC_API_KEY\` - Claude for questions, PRD generation
+- \`PERPLEXITY_API_KEY\` - Tech stack research
+- \`CLERK_WEBHOOK_SECRET\` - Clerk user sync
+
+## AI Wrapper Files
+
+\`\`\`
+convex/ai/claude.ts     - Claude API for questions, recommendations, compatibility, PRD
+convex/ai/perplexity.ts - Perplexity API for tech stack research
+\`\`\`

@@ -1,5 +1,7 @@
 # API Routes Guide
 
+**Current Status**: No API routes in use - backend handled entirely through Convex functions. This guide is for reference if adding third-party integrations.
+
 ## Route Structure (Next.js 15 App Router)
 
 ### File Location

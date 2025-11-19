@@ -8,9 +8,11 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Doc } from "@/convex/_generated/dataModel";
 
 function TodoList() {
-  const todos = useQuery(api.todos.list);
+  // Type cast when inference fails
+  const todos = useQuery(api.todos.list) as Doc<"todos">[] | undefined;
 
   // undefined = loading
   if (todos === undefined) return <div>Loading...</div>;

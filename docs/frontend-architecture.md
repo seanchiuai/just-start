@@ -22,7 +22,7 @@
 ```
 
 ### Route Groups
-- `(auth)`: Public authentication pages (login, signup)
+- `(auth)`: 🚧 Not implemented - Clerk handles auth UI directly
 - `(protected)`: Wizard flow & dashboard (requires Clerk auth)
 
 ### File Conventions
@@ -103,3 +103,25 @@ function WizardStep() {
 - Hooks: `/hooks/**/*.ts`
 - Utils: `/lib/**/*.ts`
 - Backend: `/convex/**/*.ts`
+
+## Route Status
+
+### Working Routes
+- `/` - Landing page with auth redirect
+- `/share/[token]` - Public PRD sharing
+- `/dashboard` - User projects list
+- `/project/new` - New project form
+- `/project/[projectId]/questions` - AI questions step
+- `/project/[projectId]/tech-stack` - Tech recommendations
+- `/project/[projectId]/validation` - Compatibility checks
+- `/project/[projectId]/prd` - PRD viewer with export
+
+### Deprecated Routes (Consider Removal)
+- `/bookmarks` - 🗑️ Old bookmark manager, uses @tabler/icons
+- `/tasks` - 🗑️ Unused TodoDashboard wrapper
+- `/search-demo` - 🗑️ Vector search demo
+- `/font-test` - 🗑️ Old font testing page
+- `/server` - 🗑️ Convex SSR example
+
+### API Routes
+None - backend handled entirely through Convex functions
