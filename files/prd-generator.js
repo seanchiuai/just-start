@@ -116,18 +116,25 @@ class RateLimiter {
   }
 
   async waitForSlot() {
-    const now = Date.now();
-    this.requests = this.requests.filter(time => now - time < this.windowMs);
+    // Use iteration instead of recursion to avoid stack overflow under heavy queuing
+    while (true) {
+      const now = Date.now();
+      // Purge stale entries
+      this.requests = this.requests.filter(time => now - time < this.windowMs);
 
-    if (this.requests.length >= this.maxRequests) {
+      if (this.requests.length < this.maxRequests) {
+        // Capacity available, claim a slot
+        this.requests.push(Date.now());
+        return;
+      }
+
+      // Rate limit reached, wait and retry
       const oldestRequest = Math.min(...this.requests);
       const waitTime = this.windowMs - (now - oldestRequest) + 100;
       console.log(`Rate limit reached, waiting ${waitTime}ms...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
-      return this.waitForSlot(); // Retry
+      // Loop continues to recheck after waiting
     }
-
-    this.requests.push(Date.now());
   }
 }
 
@@ -158,14 +165,27 @@ class Validator {
   }
 
   parseAndValidate(text, schemaName) {
-    // Strip markdown code fences
-    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    // Only strip surrounding code fence markers, not all occurrences
+    let cleaned = text.trim();
+    
+    // If the text starts with ```json or ```, strip the leading fence
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.slice(7).trim();
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.slice(3).trim();
+    }
+    
+    // If the text ends with ```, strip the trailing fence
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.slice(0, -3).trim();
+    }
     
     let data;
     try {
       data = JSON.parse(cleaned);
     } catch (error) {
-      throw new Error(`JSON parse error: ${error.message}\nContent: ${cleaned.substring(0, 200)}...`);
+      // Log parse error with safe details (avoid leaking actual content)
+      throw new Error(`JSON parse error: ${error.message} (response length: ${cleaned.length} chars)`);
     }
 
     this.validate(data, schemaName);
@@ -197,82 +217,166 @@ class PRDGenerator {
   async callClaude(prompt, model = CONFIG.anthropic.models.sonnet, maxTokens = 4096) {
     await this.claudeLimiter.waitForSlot();
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const maxAttempts = 3;
+    const baseDelay = 1000; // 1 second
+    let lastError;
 
-    try {
-      const response = await fetch(`${CONFIG.anthropic.baseUrl}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CONFIG.anthropic.apiKey,
-          'anthropic-version': CONFIG.anthropic.version
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: maxTokens,
-          messages: [{ role: 'user', content: prompt }]
-        }),
-        signal: controller.signal
-      });
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      clearTimeout(timeoutId);
+      try {
+        const response = await fetch(`${CONFIG.anthropic.baseUrl}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': CONFIG.anthropic.apiKey,
+            'anthropic-version': CONFIG.anthropic.version
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: maxTokens,
+            messages: [{ role: 'user', content: prompt }]
+          }),
+          signal: controller.signal
+        });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Claude API error: ${response.status} - ${error}`);
+        clearTimeout(timeoutId);
+
+        // Don't retry on 4xx client errors
+        if (response.status >= 400 && response.status < 500) {
+          const error = await response.text();
+          throw new Error(`Claude API error: ${response.status} - ${error}`);
+        }
+
+        // Retry on 5xx server errors
+        if (!response.ok) {
+          const error = await response.text();
+          lastError = new Error(`Claude API error: ${response.status} - ${error}`);
+          console.warn(`Attempt ${attempt}/${maxAttempts} failed: ${lastError.message}`);
+          
+          if (attempt < maxAttempts) {
+            // Exponential backoff with jitter
+            const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+            console.log(`Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          throw lastError;
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
+        
+      } catch (error) {
+        clearTimeout(timeoutId);
+        
+        // Don't retry on timeout or client errors
+        if (error.name === 'AbortError') {
+          throw new Error('Claude API request timed out after 60 seconds');
+        }
+        
+        // Retry on network errors
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          lastError = error;
+          console.warn(`Attempt ${attempt}/${maxAttempts} failed: ${error.message}`);
+          
+          if (attempt < maxAttempts) {
+            const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+            console.log(`Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+        }
+        
+        throw error;
       }
-
-      const data = await response.json();
-      return data.content[0].text;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Claude API request timed out after 60 seconds');
-      }
-      throw error;
     }
+
+    throw new Error(`Claude API call failed after ${maxAttempts} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
   async callPerplexity(prompt) {
     await this.perplexityLimiter.waitForSlot();
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    const maxAttempts = 3;
+    const baseDelay = 1000; // 1 second
+    let lastError;
 
-    try {
-      const response = await fetch(`${CONFIG.perplexity.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${CONFIG.perplexity.apiKey}`
-        },
-        body: JSON.stringify({
-          model: CONFIG.perplexity.model,
-          messages: [
-            { role: 'system', content: 'You are a helpful tech architecture expert.' },
-            { role: 'user', content: prompt }
-          ]
-        }),
-        signal: controller.signal
-      });
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      clearTimeout(timeoutId);
+      try {
+        const response = await fetch(`${CONFIG.perplexity.baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CONFIG.perplexity.apiKey}`
+          },
+          body: JSON.stringify({
+            model: CONFIG.perplexity.model,
+            messages: [
+              { role: 'system', content: 'You are a helpful tech architecture expert.' },
+              { role: 'user', content: prompt }
+            ]
+          }),
+          signal: controller.signal
+        });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Perplexity API error: ${response.status} - ${error}`);
+        clearTimeout(timeoutId);
+
+        // Don't retry on 4xx client errors
+        if (response.status >= 400 && response.status < 500) {
+          const error = await response.text();
+          throw new Error(`Perplexity API error: ${response.status} - ${error}`);
+        }
+
+        // Retry on 5xx server errors
+        if (!response.ok) {
+          const error = await response.text();
+          lastError = new Error(`Perplexity API error: ${response.status} - ${error}`);
+          console.warn(`Attempt ${attempt}/${maxAttempts} failed: ${lastError.message}`);
+          
+          if (attempt < maxAttempts) {
+            // Exponential backoff with jitter
+            const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+            console.log(`Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          throw lastError;
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+        
+      } catch (error) {
+        clearTimeout(timeoutId);
+        
+        // Don't retry on timeout or client errors
+        if (error.name === 'AbortError') {
+          throw new Error('Perplexity API request timed out after 60 seconds');
+        }
+        
+        // Retry on network errors
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          lastError = error;
+          console.warn(`Attempt ${attempt}/${maxAttempts} failed: ${error.message}`);
+          
+          if (attempt < maxAttempts) {
+            const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+            console.log(`Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+        }
+        
+        throw error;
       }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Perplexity API request timed out after 60 seconds');
-      }
-      throw error;
     }
+
+    throw new Error(`Perplexity API call failed after ${maxAttempts} attempts: ${lastError?.message || 'Unknown error'}`);
   }
 
   // ============================================
@@ -412,53 +516,43 @@ ${answersText}`;
 
   async step3_researchTechStack(queries) {
     console.log('Step 3: Researching tech stack...');
-    // Use Perplexity Prompt #1 here
-    const prompt = `[Full Perplexity research prompt with queries: ${queries.join(', ')}]`;
-    const research = await this.callPerplexity(prompt);
-    console.log(`✓ Completed tech stack research`);
-    return research;
+    // TODO: implement prompt for step3_researchTechStack - needs Perplexity Prompt #1 with queries interpolation
+    throw new Error('TODO: step3_researchTechStack (lines ~413-419) - Implement full Perplexity research prompt with queries interpolation. This function requires the complete prompt implementation including query templating.');
   }
 
   async step4_presentTechStack(research, appName, userAnswers) {
     console.log('Step 4: Presenting tech stack recommendations...');
-    // Use Claude Prompt #3 here
-    const prompt = `[Full presentation prompt with research findings]`;
-    const presentation = await this.callClaude(prompt, CONFIG.anthropic.models.sonnet, 4096);
-    console.log(`✓ Tech stack presentation ready`);
-    return presentation;
+    // TODO: implement prompt for step4_presentTechStack - needs Claude Prompt #3 with research findings
+    throw new Error('TODO: step4_presentTechStack (lines ~421-428) - Implement full Claude presentation prompt with research, appName, and userAnswers interpolation. This function requires the complete prompt implementation.');
   }
 
   async step5_validateCompatibility(appName, confirmedStack) {
     console.log('Step 5: Validating tech stack compatibility...');
-    // Use Perplexity Prompt #2 here
-    const prompt = `[Full validation prompt with confirmed stack]`;
-    const response = await this.callPerplexity(prompt);
-    const data = this.validator.parseAndValidate(response, 'compatibility');
-    console.log(`✓ Validation complete: ${data.status}`);
-    return data;
+    // TODO: implement prompt for step5_validateCompatibility - needs Perplexity Prompt #2 with confirmed stack
+    throw new Error('TODO: step5_validateCompatibility (lines ~430-438) - Implement full Perplexity validation prompt with appName and confirmedStack interpolation. This function requires the complete prompt implementation and must return compatibility schema.');
   }
 
   async step6_generatePRD(appName, appDescription, userAnswers, techStack, validation) {
     console.log('Step 6: Generating comprehensive PRD...');
-    // Use Claude Prompt #4 (Opus) here
-    const prompt = `[Full PRD generation prompt with all data]`;
-    const prd = await this.callClaude(prompt, CONFIG.anthropic.models.opus, 16384);
-    console.log(`✓ PRD generated successfully`);
-    return prd;
+    // TODO: implement prompt for step6_generatePRD - needs Claude Prompt #4 (Opus) with all data
+    throw new Error('TODO: step6_generatePRD (lines ~440-448) - Implement full Claude Opus PRD generation prompt with appName, appDescription, userAnswers, techStack, and validation interpolation. This function requires the complete prompt implementation.');
   }
 
   // ============================================
   // MAIN FLOW
   // ============================================
 
-  async generate(appName, appDescription, getUserInput, retryCount = 0) {
+  async generate(appName, appDescription, getUserInput) {
+    // Internal retry management
     const MAX_RETRIES = 3;
+    let retryCount = 0;
 
-    if (retryCount >= MAX_RETRIES) {
-      throw new Error(`Maximum retry limit (${MAX_RETRIES}) exceeded for compatibility resolution`);
-    }
+    const attemptGeneration = async () => {
+      if (retryCount >= MAX_RETRIES) {
+        throw new Error(`Maximum retry limit (${MAX_RETRIES}) exceeded for compatibility resolution`);
+      }
 
-    try {
+      try {
       // Step 1: Generate questions
       const questionsData = await this.step1_generateQuestions(appName, appDescription);
       
@@ -497,8 +591,9 @@ ${answersText}`;
         
         const shouldRetry = await getUserInput.handleCriticalIssues(validation.issues);
         if (shouldRetry) {
-          // Recursive call with modified stack and incremented retry count
-          return this.generate(appName, appDescription, getUserInput, retryCount + 1);
+          // Increment retry count and attempt again
+          retryCount++;
+          return attemptGeneration();
         } else {
           throw new Error('Critical compatibility issues unresolved');
         }
@@ -526,14 +621,17 @@ ${answersText}`;
         }
       };
 
-    } catch (error) {
-      console.error('PRD generation failed:', error);
-      return {
-        success: false,
-        error: error.message,
-        stack: error.stack
-      };
-    }
+      } catch (error) {
+        console.error('PRD generation failed:', error);
+        return {
+          success: false,
+          error: error.message,
+          stack: error.stack
+        };
+      }
+    };
+
+    return attemptGeneration();
   }
 }
 

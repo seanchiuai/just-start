@@ -6,6 +6,7 @@ import {
   internalQuery,
 } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { DEFAULT_SUBSCRIPTION } from "./schema";
 
 // Get current user by Clerk ID
 export const getByClerkId = query({
@@ -77,8 +78,8 @@ export const upsertFromClerk = internalMutation({
       updatedAt: now,
       prdsGenerated: 0,
       subscription: {
-        tier: "free",
-        credits: 3,
+        tier: DEFAULT_SUBSCRIPTION.tier,
+        credits: DEFAULT_SUBSCRIPTION.credits,
       },
     });
   },
@@ -121,9 +122,10 @@ export const decrementCredits = internalMutation({
     if (!user) throw new Error("User not found");
     if (user.subscription.credits <= 0) throw new Error("No credits remaining");
 
+    // Explicitly construct the new subscription object to ensure schema changes cause compile errors
     await ctx.db.patch(args.userId, {
       subscription: {
-        ...user.subscription,
+        tier: user.subscription.tier,
         credits: user.subscription.credits - 1,
       },
       updatedAt: Date.now(),

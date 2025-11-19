@@ -11,7 +11,7 @@ Research current best practices using Perplexity API and generate tech stack rec
 ```typescript
 // convex/schema.ts
 techStackRecommendations: defineTable({
-  projectId: v.id("projects"),
+  projectId: v.id("prdProjects"),
   researchQueries: v.array(v.string()),
   researchResults: v.string(),
   recommendations: v.object({
@@ -42,6 +42,67 @@ techStackRecommendations: defineTable({
 ### 2. Perplexity API Integration
 ```typescript
 // convex/ai/perplexity.ts
+
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<any> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => "");
+        const error = new Error(
+          `Perplexity API error ${response.status}: ${response.statusText}. ${errorBody}`
+        );
+
+        // Retry on 5xx errors or rate limits
+        if (response.status >= 500 || response.status === 429) {
+          if (attempt < maxRetries - 1) {
+            const delay = Math.pow(2, attempt) * 1000;
+            console.warn(`Retrying Perplexity request in ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+            continue;
+          }
+        }
+        throw error;
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error.name === "AbortError") {
+        const timeoutError = new Error("Perplexity API request timed out after 30s");
+        if (attempt < maxRetries - 1) {
+          const delay = Math.pow(2, attempt) * 1000;
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        throw timeoutError;
+      }
+
+      // Retry on network errors
+      if (attempt < maxRetries - 1 && error.message.includes("fetch")) {
+        const delay = Math.pow(2, attempt) * 1000;
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+
+      throw error;
+    }
+  }
+}
+
 export async function researchTechStack(
   appName: string,
   description: string,
@@ -51,17 +112,17 @@ export async function researchTechStack(
 
   const results = await Promise.all(
     queries.map(query =>
-      fetch("https://api.perplexity.ai/chat/completions", {
+      fetchWithRetry("https://api.perplexity.ai/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${process.env.PERPLEXITY_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.1-sonar-large-128k-online",
+          model: "sonar-pro",
           messages: [{ role: "user", content: query }],
         }),
-      }).then(r => r.json())
+      })
     )
   );
 
@@ -95,7 +156,7 @@ export async function generateRecommendations(
   research: string
 ): Promise<Recommendations> {
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 4000,
     messages: [{
       role: "user",

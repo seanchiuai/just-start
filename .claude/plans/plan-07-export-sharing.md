@@ -12,22 +12,46 @@ Allow users to export PRDs in multiple formats and share via expiring links.
 #### JSON Export
 ```typescript
 // convex/prd.ts
-export const exportJSON = mutation({
+// Use Convex storage to avoid response size limits
+export const exportJSON = action({
   args: { prdId: v.id("prds") },
   handler: async (ctx, args) => {
-    const prd = await ctx.db.get(args.prdId);
+    const prd = await ctx.runQuery(internal.prd.get, { prdId: args.prdId });
 
-    await ctx.db.patch(args.prdId, {
-      exportedAt: Date.now(),
-    });
+    if (!prd) {
+      throw new Error("PRD not found");
+    }
 
+    // Serialize PRD content
+    const jsonContent = JSON.stringify(prd.content, null, 2);
+    const blob = new Blob([jsonContent], { type: "application/json" });
+
+    // Store in Convex storage
+    const storageId = await ctx.storage.store(blob);
+
+    // Update export timestamp
+    await ctx.runMutation(internal.prd.markExported, { prdId: args.prdId });
+
+    // Return storage reference for client to download
     return {
+      storageId,
       filename: `${prd.content.projectOverview.productName}-PRD.json`,
-      content: JSON.stringify(prd.content, null, 2),
-      mimeType: "application/json",
     };
   },
 });
+
+// Internal mutation to mark as exported
+export const markExported = internalMutation({
+  args: { prdId: v.id("prds") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.prdId, {
+      exportedAt: Date.now(),
+    });
+  },
+});
+
+// Client-side: get download URL
+// const url = await ctx.storage.getUrl(storageId);
 ```
 
 #### Markdown Export
@@ -153,8 +177,14 @@ export const createShareLink = mutation({
       shareRevokedAt: null,
     });
 
+    // Use server-side env var (set in Convex dashboard, not .env.local)
+    const appUrl = process.env.APP_URL;
+    if (!appUrl) {
+      throw new Error("APP_URL environment variable not configured in Convex dashboard");
+    }
+
     return {
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/share/${shareToken}`,
+      url: `${appUrl}/share/${shareToken}`,
       expiresAt,
     };
   },
@@ -163,6 +193,9 @@ export const createShareLink = mutation({
 function generateToken(): string {
   return crypto.randomUUID().replace(/-/g, "");
 }
+
+// Note: Add APP_URL to Convex dashboard environment variables
+// Example: APP_URL=https://yourapp.vercel.app
 ```
 
 #### Share Page
@@ -182,6 +215,8 @@ export default async function SharePage({ params }) {
 #### Get Shared PRD
 ```typescript
 // convex/prd.ts
+
+// Read-only query - no writes allowed in queries
 export const getShared = query({
   args: { token: v.string() },
   handler: async (ctx, args) => {
@@ -203,19 +238,37 @@ export const getShared = query({
       throw new Error("Share link expired");
     }
 
-    // Update access metadata
-    await ctx.db.patch(prd._id, {
-      shareAccessCount: (prd.shareAccessCount || 0) + 1,
-      shareLastAccessedAt: Date.now(),
-    });
-
     // Return read-only content
     return {
       content: prd.content,
       generatedAt: prd.generatedAt,
+      prdId: prd._id, // Return ID so client can track access
     };
   },
 });
+
+// Separate mutation to track access (call from client after getShared)
+export const trackShareAccess = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const prd = await ctx.db
+      .query("prds")
+      .withIndex("by_share_token", (q) => q.eq("shareToken", args.token))
+      .unique();
+
+    if (!prd) return; // Silently fail if not found
+
+    await ctx.db.patch(prd._id, {
+      shareAccessCount: (prd.shareAccessCount || 0) + 1,
+      shareLastAccessedAt: Date.now(),
+    });
+  },
+});
+
+// Client usage:
+// const sharedPrd = useQuery(api.prd.getShared, { token });
+// const trackAccess = useMutation(api.prd.trackShareAccess);
+// useEffect(() => { if (sharedPrd) trackAccess({ token }); }, [sharedPrd]);
 ```
 
 ### 3. UI Components

@@ -24,7 +24,21 @@ const maxWidthClasses = {
 
 export function ProjectLayout({ children, maxWidth = "3xl" }: ProjectLayoutProps) {
   const params = useParams();
-  const projectId = params.projectId as Id<"prdProjects">;
+  
+  // Validate projectId exists and is a non-empty string before using it
+  const rawProjectId = params.projectId;
+  if (!rawProjectId || typeof rawProjectId !== "string" || rawProjectId.trim() === "") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Invalid Project ID</h2>
+          <p className="text-muted-foreground">The project ID in the URL is missing or invalid.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  const projectId = rawProjectId as Id<"prdProjects">;
   const project = useQuery(api.prdProjects.get, { projectId });
 
   if (project === undefined) {

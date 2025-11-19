@@ -31,16 +31,20 @@ export const get = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
 
-    const project = await ctx.db.get(args.projectId);
-    if (!project) return null;
-
-    // Verify ownership
+    // Verify ownership first before fetching project
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    if (!user || project.userId !== user._id) return null;
+    if (!user) return null;
+
+    // Fetch project only after user is confirmed
+    const project = await ctx.db.get(args.projectId);
+    if (!project) return null;
+
+    // Verify the fetched project belongs to this user
+    if (project.userId !== user._id) return null;
 
     return project;
   },
@@ -132,7 +136,7 @@ export const updateLastAccessed = mutation({
     if (!identity) throw new Error("Not authenticated");
 
     const project = await ctx.db.get(args.projectId);
-    if (!project) return;
+    if (!project) throw new Error("Project not found");
 
     // Verify ownership
     const user = await ctx.db
@@ -140,7 +144,9 @@ export const updateLastAccessed = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
       .unique();
 
-    if (!user || project.userId !== user._id) return;
+    if (!user || project.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
 
     await ctx.db.patch(args.projectId, {
       lastAccessedAt: Date.now(),
@@ -167,34 +173,52 @@ export const remove = mutation({
       throw new Error("Not authorized");
     }
 
-    // Delete related data in parallel
-    const [questions, techStack, compatibility, prds] = await Promise.all([
-      ctx.db
-        .query("questionSets")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-        .collect(),
-      ctx.db
-        .query("techStackRecommendations")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-        .collect(),
-      ctx.db
-        .query("compatibilityChecks")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-        .collect(),
-      ctx.db
-        .query("prds")
-        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
-        .collect(),
-    ]);
+    // WARNING: Cascading hard deletes are not atomic in Convex.
+    // If a deletion fails partway through, orphaned records may remain.
+    // Consider implementing soft deletes (deletedAt timestamp) for safer recovery.
+    
+    try {
+      // Delete related data in parallel
+      const [questions, techStack, compatibility, prds] = await Promise.all([
+        ctx.db
+          .query("questionSets")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("techStackRecommendations")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("compatibilityChecks")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("prds")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+      ]);
 
-    // Delete all related records in parallel
-    await Promise.all([
-      ...questions.map((q) => ctx.db.delete(q._id)),
-      ...techStack.map((t) => ctx.db.delete(t._id)),
-      ...compatibility.map((c) => ctx.db.delete(c._id)),
-      ...prds.map((p) => ctx.db.delete(p._id)),
-    ]);
+      const deletedIds: { type: string; id: string }[] = [];
 
-    await ctx.db.delete(args.projectId);
+      // Delete all related records in parallel
+      await Promise.all([
+        ...questions.map((q) => ctx.db.delete(q._id).then(() => deletedIds.push({ type: "questionSets", id: q._id }))),
+        ...techStack.map((t) => ctx.db.delete(t._id).then(() => deletedIds.push({ type: "techStackRecommendations", id: t._id }))),
+        ...compatibility.map((c) => ctx.db.delete(c._id).then(() => deletedIds.push({ type: "compatibilityChecks", id: c._id }))),
+        ...prds.map((p) => ctx.db.delete(p._id).then(() => deletedIds.push({ type: "prds", id: p._id }))),
+      ]);
+
+      await ctx.db.delete(args.projectId);
+      deletedIds.push({ type: "prdProjects", id: args.projectId });
+
+    } catch (error) {
+      // Log the error and any successfully deleted records for manual cleanup
+      console.error("Cascading delete failed for project:", args.projectId);
+      console.error("Error:", error);
+      console.error("Note: Some records may have been deleted before the failure occurred.");
+      console.error("Manual cleanup may be required for orphaned records.");
+      // Re-throw to surface the error to the caller
+      throw error;
+    }
   },
 });

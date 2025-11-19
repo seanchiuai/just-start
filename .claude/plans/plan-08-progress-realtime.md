@@ -245,10 +245,74 @@ export function getEstimatedTime(stage: string): string {
 
 ### 7. Jump Back Feature
 
+#### Project Type Definition
+```typescript
+// types/project.ts
+import { Id } from "@/convex/_generated/dataModel";
+
+export interface Project {
+  _id: Id<"projects">;
+  userId: Id<"users">;
+  appName: string;
+  appDescription: string;
+  status: "draft" | "questions" | "research" | "confirmation" | "validation" | "completed";
+  currentStep: number; // 1-5, tracks wizard progress
+  generationStatus?: {
+    stage: string;
+    progress: number;
+    message: string;
+    updatedAt: number;
+  };
+  createdAt: number;
+  updatedAt: number;
+  lastAccessedAt: number;
+}
+```
+
+#### Navigation Utilities
+```typescript
+// lib/navigation.ts
+import { useRouter } from "next/navigation";
+import { Id } from "@/convex/_generated/dataModel";
+
+// Step URL mapping
+const STEP_URLS: Record<number, string> = {
+  1: "/project/new",
+  2: "/questions",
+  3: "/tech-stack",
+  4: "/validation",
+  5: "/prd",
+};
+
+export function getStepUrl(projectId: Id<"projects">, step: number): string {
+  if (step === 1) {
+    return `/project/new?edit=${projectId}`;
+  }
+  return `/project/${projectId}${STEP_URLS[step] || ""}`;
+}
+
+// Hook for navigation
+export function useStepNavigation() {
+  const router = useRouter();
+
+  const navigateToStep = (projectId: Id<"projects">, step: number) => {
+    const url = getStepUrl(projectId, step);
+    router.push(url);
+  };
+
+  return { navigateToStep };
+}
+```
+
 #### Navigation Component
 ```typescript
 // components/features/progress/step-navigation.tsx
+import { cn } from "@/lib/utils";
+import { useStepNavigation } from "@/lib/navigation";
+import type { Project } from "@/types/project";
+
 export function StepNavigation({ project }: { project: Project }) {
+  const { navigateToStep } = useStepNavigation();
   const currentStep = project.currentStep;
 
   const canGoBack = (step: number) => step < currentStep;

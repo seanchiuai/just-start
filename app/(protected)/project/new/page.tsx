@@ -81,7 +81,10 @@ export default function NewProjectPage() {
                   id="appName"
                   placeholder="e.g., TaskFlow, MealPlanner, FitTrack"
                   value={appName}
-                  onChange={(e) => setAppName(e.target.value)}
+                  onChange={(e) => {
+                    setAppName(e.target.value);
+                    if (error) setError("");
+                  }}
                   disabled={isLoading}
                 />
               </div>
@@ -92,7 +95,10 @@ export default function NewProjectPage() {
                   id="appDescription"
                   placeholder="Describe what your app does, who it's for, and key features you're envisioning..."
                   value={appDescription}
-                  onChange={(e) => setAppDescription(e.target.value)}
+                  onChange={(e) => {
+                    setAppDescription(e.target.value);
+                    if (error) setError("");
+                  }}
                   disabled={isLoading}
                 />
                 <p className="text-sm text-muted-foreground">

@@ -18,9 +18,16 @@ export default function ProtectedLayout({
     }
   }, [isLoaded, isSignedIn, router]);
 
-  // Show nothing while checking auth (middleware handles protection)
+  // Show loading state while checking auth (middleware handles protection)
   if (!isLoaded) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div role="status" className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="sr-only">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

@@ -30,8 +30,11 @@ async function callPerplexity(prompt, options = {}) {
 ```
 
 ### Models
-- `sonar` - Basic model, cost-effective ($5/1000 searches)
-- `sonar-pro` - Best factuality, real-time info ($3/750K input, $15/750K output)
+- `sonar` - Basic model ($1/1M input, $1/1M output + $5/1K request fee)
+- `sonar-pro` - Best factuality, real-time info ($3/1M input, $15/1M output)
+- `sonar-reasoning` - Chain-of-thought reasoning (see Perplexity docs for pricing)
+- `sonar-reasoning-pro` - Advanced reasoning (see Perplexity docs for pricing)
+- `sonar-deep-research` - Multi-step research (see Perplexity docs for pricing)
 
 ### Structured Output Patterns
 

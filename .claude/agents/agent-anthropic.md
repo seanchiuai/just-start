@@ -32,7 +32,7 @@ const tools = [{
 }];
 
 const response = await client.messages.create({
-  model: "claude-sonnet-4-20250514",
+  model: "claude-sonnet-4-5-20250929",
   max_tokens: 4096,
   tools,
   messages: [{ role: "user", content: "Use extract_data tool..." }]
@@ -49,14 +49,46 @@ for (const content of response.content) {
 #### Method 2: Prefill Assistant Response
 ```javascript
 const response = await client.messages.create({
-  model: "claude-sonnet-4-20250514",
+  model: "claude-sonnet-4-5-20250929",
   max_tokens: 1024,
   messages: [
     { role: "user", content: "Return JSON with..." },
     { role: "assistant", content: "{" } // Prefill forces JSON
   ]
 });
-const json = JSON.parse("{" + response.content[0].text);
+
+// Robustly extract JSON from response
+function extractJSON(text) {
+  const trimmed = text.trim();
+
+  // If already valid JSON, parse directly
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      return JSON.parse(trimmed);
+    } catch (e) {
+      // Fall through to extraction
+    }
+  }
+
+  // Find JSON substring
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    throw new Error(`Invalid JSON response: no valid JSON object found in: ${trimmed.substring(0, 100)}...`);
+  }
+
+  const jsonStr = trimmed.substring(firstBrace, lastBrace + 1);
+
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    throw new Error(`Failed to parse extracted JSON: ${e.message}. Content: ${jsonStr.substring(0, 100)}...`);
+  }
+}
+
+// For prefilled responses, prepend "{" since we started with it
+const json = extractJSON("{" + response.content[0].text);
 ```
 
 #### Method 3: Explicit Instructions
@@ -115,8 +147,8 @@ class RateLimiter {
 ```
 
 ### Model Selection
+- `claude-sonnet-4-5-20250929` - Latest, balanced speed/quality (recommended)
 - `claude-opus-4-20250514` - Complex tasks, long-form content
-- `claude-sonnet-4-20250514` - Balanced speed/quality
 - `claude-3-haiku-20240307` - Fast, simple tasks
 
 ### Error Handling

@@ -1,6 +1,24 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+// Default subscription configuration for new users
+export const DEFAULT_SUBSCRIPTION_TIER = "free" as const;
+export const DEFAULT_SUBSCRIPTION_CREDITS = 3;
+
+export const DEFAULT_SUBSCRIPTION = {
+  tier: DEFAULT_SUBSCRIPTION_TIER,
+  credits: DEFAULT_SUBSCRIPTION_CREDITS,
+} as const;
+
+// Reusable tech recommendation schema
+const techRecommendation = v.object({
+  technology: v.string(),
+  reasoning: v.string(),
+  pros: v.array(v.string()),
+  cons: v.array(v.string()),
+  alternatives: v.array(v.string()),
+});
+
 export default defineSchema({
   // Legacy tables
   numbers: defineTable({
@@ -25,8 +43,8 @@ export default defineSchema({
     updatedAt: v.number(),
     prdsGenerated: v.number(),
     subscription: v.object({
-      tier: v.string(),
-      credits: v.number(),
+      tier: v.string(), // Use DEFAULT_SUBSCRIPTION_TIER for new users
+      credits: v.number(), // Use DEFAULT_SUBSCRIPTION_CREDITS for new users
     }),
   }).index("by_clerk_id", ["clerkId"]),
 
@@ -81,41 +99,11 @@ export default defineSchema({
     researchQueries: v.array(v.string()),
     researchResults: v.string(),
     recommendations: v.object({
-      frontend: v.object({
-        technology: v.string(),
-        reasoning: v.string(),
-        pros: v.array(v.string()),
-        cons: v.array(v.string()),
-        alternatives: v.array(v.string()),
-      }),
-      backend: v.object({
-        technology: v.string(),
-        reasoning: v.string(),
-        pros: v.array(v.string()),
-        cons: v.array(v.string()),
-        alternatives: v.array(v.string()),
-      }),
-      database: v.object({
-        technology: v.string(),
-        reasoning: v.string(),
-        pros: v.array(v.string()),
-        cons: v.array(v.string()),
-        alternatives: v.array(v.string()),
-      }),
-      auth: v.object({
-        technology: v.string(),
-        reasoning: v.string(),
-        pros: v.array(v.string()),
-        cons: v.array(v.string()),
-        alternatives: v.array(v.string()),
-      }),
-      hosting: v.object({
-        technology: v.string(),
-        reasoning: v.string(),
-        pros: v.array(v.string()),
-        cons: v.array(v.string()),
-        alternatives: v.array(v.string()),
-      }),
+      frontend: techRecommendation,
+      backend: techRecommendation,
+      database: techRecommendation,
+      auth: techRecommendation,
+      hosting: techRecommendation,
     }),
     confirmedStack: v.optional(
       v.object({
@@ -158,7 +146,8 @@ export default defineSchema({
   prds: defineTable({
     projectId: v.id("prdProjects"),
     userId: v.id("users"),
-    // PRD content structure (see plan-06-prd-generation.md):
+    // PRD content structure - stored as serialized JSON string for flexibility
+    // Expected structure (validated at runtime in mutations):
     // - overview: { summary, problemStatement, targetAudience, valueProposition }
     // - goals: { primary, secondary, metrics }
     // - personas: Array<{ name, description, goals, painPoints }>
@@ -169,7 +158,7 @@ export default defineSchema({
     // - uiux: { designPrinciples, keyScreens, userFlows }
     // - timeline: { phases: Array<{ name, duration, deliverables }> }
     // - risks: Array<{ risk, mitigation, impact }>
-    content: v.any(),
+    content: v.string(),
     version: v.number(),
     generatedAt: v.number(),
     exportedAt: v.optional(v.number()),
