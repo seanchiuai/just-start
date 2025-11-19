@@ -758,7 +758,17 @@ Format: Clear sections with rationale for each choice.`;
 #### 3. Error Handling & Retries
 
 ```javascript
-async function callWithRetry(apiFunction, maxRetries = 3) {
+/**
+ * Retry helper with exponential backoff and jitter
+ * @param {Function} apiFunction - Async function to retry
+ * @param {Object} options - Retry configuration
+ * @param {number} options.maxRetries - Maximum retry attempts (default: 3)
+ * @param {number} options.baseDelay - Base delay in milliseconds (default: 1000)
+ * @param {boolean} options.jitter - Add random jitter to delay (default: true)
+ */
+async function callWithRetry(apiFunction, options = {}) {
+  const { maxRetries = 3, baseDelay = 1000, jitter = true } = options;
+  
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await apiFunction();
@@ -766,7 +776,17 @@ async function callWithRetry(apiFunction, maxRetries = 3) {
       if (error.message.includes('Invalid JSON')) {
         console.log(`Retry ${i + 1}/${maxRetries}: Invalid JSON response`);
         if (i === maxRetries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        
+        // Exponential backoff: baseDelay * 2^attempt
+        let delay = baseDelay * Math.pow(2, i);
+        
+        // Add jitter: random variation ±50% of baseDelay
+        if (jitter) {
+          const jitterAmount = baseDelay * (Math.random() - 0.5);
+          delay += jitterAmount;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
       } else {
         throw error;
       }
@@ -775,8 +795,9 @@ async function callWithRetry(apiFunction, maxRetries = 3) {
 }
 
 // Usage
-const questions = await callWithRetry(() => 
-  generateQuestions('MyApp', 'A social platform for developers')
+const questions = await callWithRetry(
+  () => generateQuestions('MyApp', 'A social platform for developers'),
+  { maxRetries: 3, baseDelay: 1000, jitter: true }
 );
 ```
 

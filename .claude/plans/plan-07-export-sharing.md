@@ -190,8 +190,53 @@ export const createShareLink = mutation({
   },
 });
 
+export const revokeShareLink = mutation({
+  args: { prdId: v.id("prds") },
+  handler: async (ctx, args) => {
+    // Authenticate the user
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required: You must be logged in to revoke a share link");
+    }
+
+    // Load the PRD
+    const prd = await ctx.db.get(args.prdId);
+    if (!prd) {
+      throw new Error("PRD not found: The requested PRD does not exist");
+    }
+
+    // Verify the current user is the PRD owner
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+    
+    if (!user || prd.userId !== user._id) {
+      throw new Error("Permission denied: You do not have permission to revoke this share link");
+    }
+
+    // Revoke the share link
+    await ctx.db.patch(args.prdId, {
+      shareRevokedAt: Date.now(),
+      shareToken: undefined,
+      shareExpiresAt: undefined,
+    });
+
+    return { success: true };
+  },
+});
+
 function generateToken(): string {
-  return crypto.randomUUID().replace(/-/g, "");
+  // Generate 32 random bytes (256 bits) for high entropy
+  const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+  
+  // Convert to URL-safe base64 (no padding, replace + with -, / with _)
+  const base64 = btoa(String.fromCharCode(...randomBytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+  
+  return base64;
 }
 
 // Note: Add APP_URL to Convex dashboard environment variables

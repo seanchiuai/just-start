@@ -70,16 +70,18 @@ Complete usage guide:
 
 ## 🎯 Prompt Engineering Patterns Applied
 
-### 1. **Structured Output Enforcement**
-```
+### 1. Structured Output Enforcement
+
+```text
 CRITICAL: Your ENTIRE response must be ONLY valid JSON.
 - Do NOT include markdown code fences
 - Do NOT include explanatory text
 - Output MUST be parseable by JSON.parse()
 ```
 
-### 2. **Chain-of-Thought Reasoning**
-```
+### 2. Chain-of-Thought Reasoning
+
+```xml
 <thinking>
 1. What core technologies needed?
 2. What specialized features require tools?
@@ -87,22 +89,26 @@ CRITICAL: Your ENTIRE response must be ONLY valid JSON.
 </thinking>
 ```
 
-### 3. **Progressive Disclosure**
+### 3. Progressive Disclosure
+
 - Simple questions first
 - Build complexity through research
 - Culminate in comprehensive PRD
 
-### 4. **Schema Validation**
+### 4. Schema Validation
+
 - JSON Schema definitions for all outputs
 - AJV validation before proceeding
 - Type safety with TypeScript interfaces
 
-### 5. **Error Recovery**
+### 5. Error Recovery
+
 - Retry logic for malformed JSON
 - Fallback strategies
 - User-friendly error messages
 
-### 6. **Few-Shot Learning**
+### 6. Few-Shot Learning
+
 - Explicit examples in prompts
 - Clear input-output patterns
 - Edge case demonstrations
@@ -111,18 +117,21 @@ CRITICAL: Your ENTIRE response must be ONLY valid JSON.
 
 ### Immediate Next Steps
 
-1. **Install Dependencies**
+1. Install Dependencies
+
 ```bash
 npm install
 ```
 
-2. **Configure API Keys**
+2. Configure API Keys
+
 ```bash
 cp .env.example .env
 # Edit .env with your API keys
 ```
 
-3. **Test the Demo**
+3. Test the Demo
+
 ```bash
 npm start
 ```
@@ -130,6 +139,7 @@ npm start
 ### Integration Into Your App
 
 #### Option A: Use as Node.js Module
+
 ```javascript
 const { PRDGenerator } = require('./prd-generator');
 
@@ -142,12 +152,14 @@ const result = await generator.generate(
 ```
 
 #### Option B: Extract Prompts for Your Stack
+
 1. Copy prompts from `prd-generator-prompts.md`
 2. Adapt API calls to your language (Python, Go, etc.)
 3. Use schemas for validation
 4. Follow error handling patterns
 
 #### Option C: Build Web API
+
 ```javascript
 // Express.js example
 app.post('/api/prd/generate', async (req, res) => {
@@ -217,20 +229,23 @@ app.post('/api/prd/generate', async (req, res) => {
 
 ## 💡 Best Practices
 
-### 1. **Always Validate Structured Outputs**
+### 1. Always Validate Structured Outputs
+
 ```javascript
 // Before using any JSON response
 const data = validator.parseAndValidate(response, schemaName);
 ```
 
-### 2. **Handle Rate Limits Proactively**
+### 2. Handle Rate Limits Proactively
+
 ```javascript
 // Use rate limiters before every API call
 await limiter.waitForSlot();
 const response = await callAPI();
 ```
 
-### 3. **Implement Retry Logic**
+### 3. Implement Retry Logic
+
 ```javascript
 // Retry with exponential backoff
 for (let i = 0; i < maxRetries; i++) {
@@ -243,14 +258,16 @@ for (let i = 0; i < maxRetries; i++) {
 }
 ```
 
-### 4. **Log Everything**
+### 4. Log Everything
+
 ```javascript
 // Log requests, responses, errors
 logger.info('API call', { prompt, model, tokens });
 logger.error('Validation failed', { error, response });
 ```
 
-### 5. **Monitor Costs**
+### 5. Monitor Costs
+
 ```javascript
 // Track token usage
 const cost = calculateCost(inputTokens, outputTokens, model);
@@ -262,7 +279,8 @@ metrics.recordCost(cost);
 ### Add New Question Types
 
 Edit Prompt #1 to include new categories:
-```
+
+```text
 - Identify missing/unclear info from:
   • Purpose & pain point
   • Core vs nice-to-have features
@@ -272,7 +290,8 @@ Edit Prompt #1 to include new categories:
 ### Modify Tech Stack Options
 
 Edit Perplexity Prompt #1 research objectives:
-```
+
+```text
 - **Frontend**: [Your criteria]
 - **Backend**: [Your criteria]
 - **[NEW CATEGORY]**: [Description]
@@ -281,6 +300,7 @@ Edit Perplexity Prompt #1 research objectives:
 ### Add Validation Rules
 
 Extend schemas in `prd-generator.js`:
+
 ```javascript
 schemas.customValidation = {
   type: 'object',
@@ -295,6 +315,7 @@ schemas.customValidation = {
 ### Change PRD Format
 
 Modify Claude Prompt #4 structure:
+
 ```markdown
 ## Your Custom Section
 [Your requirements]
@@ -303,6 +324,7 @@ Modify Claude Prompt #4 structure:
 ## 📊 Testing Strategy
 
 ### Unit Tests
+
 ```javascript
 // Test individual steps
 test('Step 1 generates valid questions', async () => {
@@ -313,6 +335,7 @@ test('Step 1 generates valid questions', async () => {
 ```
 
 ### Integration Tests
+
 ```javascript
 // Test full flow
 test('Complete PRD generation', async () => {
@@ -323,6 +346,7 @@ test('Complete PRD generation', async () => {
 ```
 
 ### Validation Tests
+
 ```javascript
 // Test schema validation
 test('Validates question response', () => {
@@ -337,6 +361,7 @@ test('Validates question response', () => {
 ## 🎓 Advanced Topics
 
 ### Caching Strategies
+
 ```javascript
 // Cache research results
 const cacheKey = `research:${appName}:${JSON.stringify(userAnswers)}`;
@@ -349,6 +374,7 @@ return result;
 ```
 
 ### Streaming Support
+
 ```javascript
 // Stream PRD generation in chunks
 async function* streamPRD(data) {
@@ -367,6 +393,7 @@ async function* streamPRD(data) {
 ```
 
 ### Webhook Integration
+
 ```javascript
 // Notify on completion
 async function generateWithWebhook(data, webhookUrl) {
@@ -388,26 +415,34 @@ async function generateWithWebhook(data, webhookUrl) {
 ## 🐛 Common Issues & Solutions
 
 ### Issue: JSON Parsing Fails
+
 **Solution:** Check for markdown code fences
+
 ```javascript
 const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 ```
 
 ### Issue: Rate Limit Exceeded
+
 **Solution:** Increase rate limiter window
+
 ```javascript
 new RateLimiter(30, 60000); // Lower max requests
 ```
 
 ### Issue: Validation Always Fails
+
 **Solution:** Log actual vs expected schema
+
 ```javascript
 console.log('Expected schema:', schema);
 console.log('Actual data:', JSON.stringify(data, null, 2));
 ```
 
 ### Issue: API Timeout
+
 **Solution:** Increase timeout, add retries
+
 ```javascript
 const controller = new AbortController();
 setTimeout(() => controller.abort(), 30000);
@@ -438,18 +473,20 @@ fetch(url, { signal: controller.signal });
 ## 🎉 You're Ready!
 
 You now have:
-✅ Production-ready prompts with structured outputs
-✅ Complete Node.js implementation with validation
-✅ API integration guide with examples
-✅ Comprehensive documentation
-✅ Testing strategy
-✅ Security checklist
-✅ Cost estimation
-✅ Scaling guidance
 
-**Next step:** Integrate into your application and start generating PRDs!
+- ✅ Production-ready prompts with structured outputs
+- ✅ Complete Node.js implementation with validation
+- ✅ API integration guide with examples
+- ✅ Comprehensive documentation
+- ✅ Testing strategy
+- ✅ Security checklist
+- ✅ Cost estimation
+- ✅ Scaling guidance
+
+Next step: Integrate into your application and start generating PRDs!
 
 For questions or issues, refer to:
+
 - `prd-generator-prompts.md` - Detailed prompt engineering
 - `api-quick-reference.md` - Quick API reference
 - `README.md` - Usage documentation

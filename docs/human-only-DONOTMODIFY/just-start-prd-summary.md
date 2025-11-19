@@ -245,7 +245,7 @@ export const generateQuestions = action({
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 4096,
         messages: [{
           role: "user",
@@ -269,8 +269,8 @@ export const generateQuestions = action({
 ```
 
 **API Keys Needed:**
-- Anthropic API key ($5 credit to start): https://console.anthropic.com
-- Perplexity API key (free tier available): https://www.perplexity.ai/settings/api
+- Anthropic API key ($5 credit to start): <https://console.anthropic.com>
+- Perplexity API key (free tier available): <https://www.perplexity.ai/settings/api>
 
 ### Phase 3: Polish & Deploy (Week 5-6)
 **Goal: Production-ready MVP**

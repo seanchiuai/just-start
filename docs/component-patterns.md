@@ -125,6 +125,7 @@ function Form() {
 ## Wizard Step Component Pattern
 
 ### Multi-Step Form Structure
+
 ```tsx
 "use client";
 
@@ -192,6 +193,7 @@ function WizardStep({ projectId, currentStep, totalSteps, onNext, onBack }: Wiza
 ```
 
 ### AI Processing Status Component
+
 ```tsx
 "use client";
 
@@ -237,6 +239,7 @@ function ProcessingStatus({ stages, currentStage }: ProcessingStatusProps) {
 ```
 
 ### Tech Stack Selection Card
+
 ```tsx
 import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";

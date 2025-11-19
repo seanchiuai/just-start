@@ -117,9 +117,15 @@ export default function LandingPage() {
 - Pro tier:
   - Unlimited PRDs
   - Priority generation
-  - $X/month
+  - $19/month (or $15/month billed annually - 20% discount)
 - Comparison table
 - CTA for each
+
+// Pricing Strategy Note:
+// Target: $19/month for Pro tier positions as affordable for indie developers
+// and small teams ($228/year vs $180/year with annual discount). Cost structure
+// supports ~34 PRDs/month at current AI API rates ($0.56/PRD) with healthy margin.
+// Consider usage-based pricing if power users exceed limits.
 ```
 
 ### 10. Final CTA

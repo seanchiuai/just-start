@@ -12,7 +12,10 @@ http.route({
   handler: httpAction(async (ctx, req) => {
     const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      return new Response("Webhook secret not configured", { status: 500 });
+      // Log detailed error for monitoring without exposing to caller
+      console.error("[Webhook Error] CLERK_WEBHOOK_SECRET not configured in environment");
+      // TODO: Send to monitoring system (e.g., Sentry.captureMessage)
+      return new Response("Internal server error", { status: 500 });
     }
 
     const svixId = req.headers.get("svix-id");
@@ -43,31 +46,50 @@ http.route({
         "svix-timestamp": svixTimestamp,
         "svix-signature": svixSignature,
       }) as typeof event;
-    } catch {
+    } catch (error) {
+      // Log security event for monitoring
+      console.error("[Webhook Security] Signature verification failed", {
+        timestamp: new Date().toISOString(),
+        svixId: svixId || "missing",
+        reason: "Invalid signature",
+      });
+      // TODO: Send to monitoring system (e.g., Sentry.captureMessage with context)
       return new Response("Invalid signature", { status: 400 });
     }
 
     const { type, data } = event;
 
-    if (type === "user.created" || type === "user.updated") {
-      const email = data.email_addresses[0]?.email_address ?? "";
-      const name = [data.first_name, data.last_name]
-        .filter(Boolean)
-        .join(" ") || undefined;
+    try {
+      if (type === "user.created" || type === "user.updated") {
+        const email = data.email_addresses[0]?.email_address ?? "";
+        const name = [data.first_name, data.last_name]
+          .filter(Boolean)
+          .join(" ") || undefined;
 
-      await ctx.runMutation(internal.users.upsertFromClerk, {
+        await ctx.runMutation(internal.users.upsertFromClerk, {
+          clerkId: data.id,
+          email,
+          name,
+          imageUrl: data.image_url,
+        });
+      } else if (type === "user.deleted") {
+        await ctx.runMutation(internal.users.deleteByClerkId, {
+          clerkId: data.id,
+        });
+      }
+
+      return new Response("OK", { status: 200 });
+    } catch (error) {
+      // Log mutation error with context
+      console.error("[Webhook Error] Mutation failed", {
+        timestamp: new Date().toISOString(),
+        eventType: type,
         clerkId: data.id,
-        email,
-        name,
-        imageUrl: data.image_url,
+        error: error instanceof Error ? error.message : String(error),
       });
-    } else if (type === "user.deleted") {
-      await ctx.runMutation(internal.users.deleteByClerkId, {
-        clerkId: data.id,
-      });
+      // TODO: Send to monitoring system (e.g., Sentry.captureException with context)
+      return new Response("Internal server error", { status: 500 });
     }
-
-    return new Response("OK", { status: 200 });
   }),
 });
 

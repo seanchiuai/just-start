@@ -202,15 +202,20 @@ await limiter.waitForSlot();
 
 Per PRD generation:
 - Claude Sonnet (Steps 1,2,3,4): ~$0.05
+  - Based on ~15K input tokens and ~5K output tokens per step across 4 steps
+  - Input: $3/MTok × 60K = $0.18, Output: $15/MTok × 20K = $0.30
 - Claude Opus (Step 6): ~$0.50
+  - Based on ~25K input tokens and ~8K output tokens for final PRD
+  - Input: $15/MTok × 25K = $0.375, Output: $75/MTok × 8K = $0.60
 - Perplexity (Steps 3,5): ~$0.01
+  - Based on ~2K tokens per request × 2 requests at $5/MTok
 - **Total: ~$0.56/PRD**
 
 Monthly estimates:
 - 100 PRDs: ~$56
 - 1000 PRDs: ~$560
 
-*Note: Prices may change. Verify current costs at [Anthropic Pricing](https://www.anthropic.com/pricing) and [Perplexity Pricing](https://www.perplexity.ai/pricing).*
+*Note: Token counts are estimates and vary by app complexity. Prices may change. Verify current costs at [Anthropic Pricing](https://www.anthropic.com/pricing) and [Perplexity Pricing](https://www.perplexity.ai/pricing).*
 
 ## 🔒 Security Best Practices
 

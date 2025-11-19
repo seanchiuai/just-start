@@ -198,11 +198,11 @@ Return JSON matching the schema...
 ```typescript
 // convex/techStack.ts
 export const research = action({
-  args: { projectId: v.id("projects") },
+  args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
     // Get project and answers
-    const project = await ctx.runQuery(...);
-    const questionSet = await ctx.runQuery(...);
+    const project = await ctx.runQuery(api.prdProjects.get, { projectId: args.projectId });
+    const questionSet = await ctx.runQuery(api.questions.getByProject, { projectId: args.projectId });
 
     // Research with Perplexity
     const research = await researchTechStack(
