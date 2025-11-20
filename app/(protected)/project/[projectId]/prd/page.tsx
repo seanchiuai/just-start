@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
@@ -27,6 +27,26 @@ export default function PRDPage() {
 
   // Share actions (from prdActions.ts - Node.js runtime)
   const createShareLink = useAction(api.prdActions.createShareLink);
+  const generatePRD = useAction(api.prdActions.generate);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
+
+  // Fallback: trigger generation if PRD doesn't exist
+  useEffect(() => {
+    if (project && prd === null && !isGenerating && !generationError) {
+      setIsGenerating(true);
+      generatePRD({ projectId })
+        .then(() => {
+          setIsGenerating(false);
+        })
+        .catch((err) => {
+          console.error("Failed to generate PRD:", err);
+          setGenerationError("Failed to generate PRD. Please try again.");
+          setIsGenerating(false);
+        });
+    }
+  }, [project, prd, projectId, isGenerating, generationError, generatePRD]);
 
   // Parse PRD content safely with memoization
   const prdContent = useMemo(() => {
@@ -159,7 +179,7 @@ export default function PRDPage() {
     );
   }
 
-  // No PRD generated yet
+  // Generating state or error state
   if (prd === null || !prdContent) {
     return (
       <div className="min-h-screen bg-background bg-dotgrid">
@@ -186,17 +206,35 @@ export default function PRDPage() {
           </div>
         </header>
 
-        {/* No PRD message */}
+        {/* Generating or error message */}
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-5xl mx-auto">
             <div className="bg-paper-warm rounded-lg border p-6 sm:p-8 shadow-sm">
               <div className="flex flex-col items-center justify-center py-12">
-                <div className="rounded-lg border border-muted p-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    No PRD has been generated for this project yet. Complete the
-                    project setup to generate your PRD.
-                  </p>
-                </div>
+                {generationError ? (
+                  <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
+                    <p className="text-sm text-destructive">{generationError}</p>
+                    <button
+                      onClick={() => {
+                        setGenerationError("");
+                        setIsGenerating(false);
+                      }}
+                      className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Generating your Product Requirements Document...
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      This may take 30-60 seconds
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
