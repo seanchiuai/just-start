@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { EmptyDashboard } from "@/components/dashboard/empty-state";
@@ -63,12 +63,39 @@ export default function DashboardPage() {
                 </CardTitle>
               </CardHeader>
             </Card>
-            <Card>
+            <Card className={
+              user.subscription.credits === 0 
+                ? "border-destructive bg-destructive/5" 
+                : user.subscription.credits === 1 
+                ? "border-yellow-500 bg-yellow-50" 
+                : ""
+            }>
               <CardHeader className="pb-2">
-                <CardDescription>Credits Remaining</CardDescription>
-                <CardTitle className="text-3xl">
+                <div className="flex items-center justify-between">
+                  <CardDescription>Credits Remaining</CardDescription>
+                  {user.subscription.credits <= 1 && (
+                    <AlertCircle className={`h-4 w-4 ${user.subscription.credits === 0 ? "text-destructive" : "text-yellow-600"}`} />
+                  )}
+                </div>
+                <CardTitle className={`text-3xl ${
+                  user.subscription.credits === 0 
+                    ? "text-destructive" 
+                    : user.subscription.credits === 1 
+                    ? "text-yellow-600" 
+                    : ""
+                }`}>
                   {user.subscription.credits}
                 </CardTitle>
+                {user.subscription.credits === 0 && (
+                  <p className="text-xs text-destructive pt-2">
+                    Upgrade to generate more PRDs
+                  </p>
+                )}
+                {user.subscription.credits === 1 && (
+                  <p className="text-xs text-yellow-600 pt-2">
+                    Low credit balance
+                  </p>
+                )}
               </CardHeader>
             </Card>
           </div>

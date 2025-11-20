@@ -5,13 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle, CreditCard } from "lucide-react";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { ValidationStatus } from "@/components/features/validation/validation-status";
 import { IssueCard } from "@/components/features/validation/issue-card";
 import { ValidationActions } from "@/components/features/validation/validation-actions";
 import { ValidationSkeleton } from "@/components/ui/query-loader";
 import type { ValidationSeverity, ValidationIssue, CompatibilityCheck } from "@/lib/types/prd";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function ValidationPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function ValidationPage() {
   // Fetch project and validation data
   const project = useQuery(api.prdProjects.get, { projectId });
   const validation = useQuery(api.compatibility.getByProject, { projectId }) as CompatibilityCheck | null | undefined;
+  const user = useQuery(api.users.getCurrentUser);
 
   // Mutation to acknowledge warnings
   const acknowledgeWarnings = useMutation(api.compatibility.acknowledgeWarnings);
@@ -46,7 +48,7 @@ export default function ValidationPage() {
   }, [project, validation, projectId, isValidating, validationError, validateCompatibility]);
 
   // Loading state
-  if (project === undefined || validation === undefined) {
+  if (project === undefined || validation === undefined || user === undefined) {
     return (
       <WizardLayout projectName="Loading..." currentStep={4}>
         <ValidationSkeleton />
@@ -109,7 +111,15 @@ export default function ValidationPage() {
     { critical: 0, moderate: 0, low: 0 }
   );
 
+  // Check credits
+  const hasCredits = user && user.subscription.credits > 0;
+  const creditsRemaining = user?.subscription.credits ?? 0;
+
   const handleProceed = async () => {
+    if (!hasCredits) {
+      return; // Disabled when no credits
+    }
+    
     try {
       if (validation.status === "warnings") {
         await acknowledgeWarnings({ projectId });
@@ -147,6 +157,38 @@ export default function ValidationPage() {
           counts={counts}
         />
 
+        {/* Credit warning card */}
+        {user && (
+          <Card className={hasCredits ? "border-blue-200 bg-blue-50/50" : "border-destructive bg-destructive/5"}>
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className={`p-2 rounded-lg ${hasCredits ? "bg-blue-100" : "bg-destructive/10"}`}>
+                  {hasCredits ? (
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className={`font-medium ${hasCredits ? "text-blue-900" : "text-destructive"}`}>
+                      {hasCredits ? "Credit Usage" : "No Credits Remaining"}
+                    </h3>
+                    <span className={`text-sm font-semibold ${hasCredits ? "text-blue-700" : "text-destructive"}`}>
+                      {creditsRemaining} {creditsRemaining === 1 ? "credit" : "credits"} left
+                    </span>
+                  </div>
+                  <p className={`text-sm ${hasCredits ? "text-blue-700" : "text-destructive"}`}>
+                    {hasCredits 
+                      ? "Generating your PRD will use 1 credit." 
+                      : "You need at least 1 credit to generate a PRD. Please upgrade your plan to continue."}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Issues list */}
         {validation.issues.length > 0 && (
           <div className="space-y-3">
@@ -163,6 +205,8 @@ export default function ValidationPage() {
             status={validation.status}
             onProceed={handleProceed}
             onModify={handleModify}
+            disabled={!hasCredits}
+            disabledMessage={!hasCredits ? "Upgrade to continue" : undefined}
           />
         </div>
       </div>

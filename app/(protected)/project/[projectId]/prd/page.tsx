@@ -42,7 +42,14 @@ export default function PRDPage() {
         })
         .catch((err) => {
           console.error("Failed to generate PRD:", err);
-          setGenerationError("Failed to generate PRD. Please try again.");
+          
+          // Check if it's a credit error
+          const errorMessage = err?.message || String(err);
+          if (errorMessage.includes("INSUFFICIENT_CREDITS")) {
+            setGenerationError("You don't have enough credits to generate a PRD. Please upgrade your plan to continue.");
+          } else {
+            setGenerationError("Failed to generate PRD. Please try again.");
+          }
           setIsGenerating(false);
         });
     }
@@ -214,15 +221,24 @@ export default function PRDPage() {
                 {generationError ? (
                   <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
                     <p className="text-sm text-destructive">{generationError}</p>
-                    <button
-                      onClick={() => {
-                        setGenerationError("");
-                        setIsGenerating(false);
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Retry
-                    </button>
+                    <div className="flex gap-2 justify-center">
+                      {!generationError.includes("credits") && (
+                        <button
+                          onClick={() => {
+                            setGenerationError("");
+                            setIsGenerating(false);
+                          }}
+                          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+                        >
+                          Retry
+                        </button>
+                      )}
+                      <Link href="/dashboard">
+                        <button className="px-4 py-2 text-sm font-medium text-foreground bg-secondary rounded-md hover:bg-secondary/80 transition-colors">
+                          Back to Dashboard
+                        </button>
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-4">

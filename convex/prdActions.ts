@@ -51,6 +51,19 @@ export const generate = action({
       throw new Error("Confirmed tech stack not found");
     }
 
+    // Check if user has credits remaining
+    const user = await ctx.runQuery(internal.users.getInternal, {
+      userId: project.userId,
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (user.subscription.credits <= 0) {
+      throw new Error("INSUFFICIENT_CREDITS");
+    }
+
     // Update progress
     await ctx.runMutation(internal.prdProjects.updateGenerationStatus, {
       projectId: args.projectId,
@@ -94,6 +107,11 @@ export const generate = action({
 
       // Increment user's PRD count
       await ctx.runMutation(internal.users.incrementPrdsGenerated, {
+        userId: project.userId,
+      });
+
+      // Decrement user's credits
+      await ctx.runMutation(internal.users.decrementCredits, {
         userId: project.userId,
       });
 

@@ -10,12 +10,16 @@ interface ValidationActionsProps {
   status: ValidationStatus;
   onProceed: () => void;
   onModify: () => void;
+  disabled?: boolean;
+  disabledMessage?: string;
 }
 
 export function ValidationActions({
   status,
   onProceed,
   onModify,
+  disabled = false,
+  disabledMessage,
 }: ValidationActionsProps) {
   const [acknowledged, setAcknowledged] = useState(false);
 
@@ -26,8 +30,9 @@ export function ValidationActions({
           onClick={onProceed}
           size="lg"
           className="bg-primary hover:bg-primary/90"
+          disabled={disabled}
         >
-          Generate PRD
+          {disabled && disabledMessage ? disabledMessage : "Generate PRD"}
         </Button>
       </div>
     );
@@ -71,10 +76,10 @@ export function ValidationActions({
         </Button>
         <Button
           onClick={onProceed}
-          disabled={!acknowledged}
+          disabled={!acknowledged || disabled}
           className="bg-primary hover:bg-primary/90"
         >
-          Proceed Anyway
+          {disabled && disabledMessage ? disabledMessage : "Proceed Anyway"}
         </Button>
       </div>
     </div>
