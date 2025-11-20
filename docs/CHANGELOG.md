@@ -1,5 +1,29 @@
 # Changelog
 
+## [Unreleased] - 2025-11-20
+
+### Credits System Implementation
+
+**Backend Changes:**
+- Added credit verification in `prdActions.generate` before PRD generation
+- Query user credits, throw `INSUFFICIENT_CREDITS` error if credits ≤ 0
+- Decrement credits after successful PRD generation (before clearing status)
+- Credits only consumed when PRD successfully generated, not at project creation
+
+**Frontend Changes:**
+- Validation page: Credit warning card with visual indicators (blue/red), disable proceed button when 0 credits
+- Dashboard: Color-coded credits card (red when 0, yellow when 1) with upgrade messages
+- PRD page: User-friendly error messages for insufficient credits, "Back to Dashboard" button
+- ValidationActions: Added `disabled` and `disabledMessage` props
+
+**User Flow:**
+- Users start with 3 free credits
+- Credits shown prominently on dashboard and validation page
+- "This will use 1 credit" notice before PRD generation
+- Clear blocking and upgrade messaging when credits depleted
+
+---
+
 ## [Unreleased] - 2025-11-19
 
 ### Documentation
