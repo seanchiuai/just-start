@@ -18,15 +18,16 @@ import type * as embeddings from "../embeddings.js";
 import type * as folders from "../folders.js";
 import type * as http from "../http.js";
 import type * as init from "../init.js";
+import type * as lib_auth from "../lib/auth.js";
+import type * as lib_markdown from "../lib/markdown.js";
 import type * as memory from "../memory.js";
-import type * as myFunctions from "../myFunctions.js";
 import type * as prd from "../prd.js";
+import type * as prdActions from "../prdActions.js";
 import type * as prdProjects from "../prdProjects.js";
 import type * as projects from "../projects.js";
 import type * as questions from "../questions.js";
 import type * as search from "../search.js";
 import type * as techStack from "../techStack.js";
-import type * as todos from "../todos.js";
 import type * as users from "../users.js";
 
 import type {
@@ -46,15 +47,16 @@ declare const fullApi: ApiFromModules<{
   folders: typeof folders;
   http: typeof http;
   init: typeof init;
+  "lib/auth": typeof lib_auth;
+  "lib/markdown": typeof lib_markdown;
   memory: typeof memory;
-  myFunctions: typeof myFunctions;
   prd: typeof prd;
+  prdActions: typeof prdActions;
   prdProjects: typeof prdProjects;
   projects: typeof projects;
   questions: typeof questions;
   search: typeof search;
   techStack: typeof techStack;
-  todos: typeof todos;
   users: typeof users;
 }>;
 

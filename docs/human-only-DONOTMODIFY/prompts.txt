@@ -1,0 +1,2 @@
+Simplify plans/code:
+Is this implementation overly complex? We are still pre-customer - any unnecessary fallbacks, unnecessary versioning, testing overkill in this?

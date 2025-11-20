@@ -16,6 +16,7 @@ export async function requirePrdOwnership(
 ) {
     const identity = await requireAuth(ctx);
 
+    // @ts-expect-error - TypeScript type inference issue with internal API
     const { authorized, prd } = await ctx.runQuery(internal.prd.verifyOwnership, {
         prdId,
         clerkId: identity.subject,
