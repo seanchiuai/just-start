@@ -99,8 +99,17 @@ export default function QuestionsPage() {
       >
         <div className="flex flex-col items-center justify-center py-12">
           {generationError ? (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
               <p className="text-sm text-destructive">{generationError}</p>
+              <button
+                onClick={() => {
+                  setGenerationError("");
+                  setIsGenerating(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Retry
+              </button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4">

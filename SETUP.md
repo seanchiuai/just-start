@@ -101,12 +101,18 @@ Now that Convex is initialized, configure it to work with Clerk:
    # Clerk Configuration
    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
    CLERK_SECRET_KEY=sk_test_your_key_here
+
+   # AI API Keys (Required for PRD generation features)
+   ANTHROPIC_API_KEY=sk-ant-your_key_here
+   PERPLEXITY_API_KEY=pplx-your_key_here
    ```
 
    **Where to find these:**
    - `NEXT_PUBLIC_CONVEX_URL`: Auto-populated from Step 3, or copy from Convex Dashboard
    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Clerk Dashboard → API Keys → Publishable key
    - `CLERK_SECRET_KEY`: Clerk Dashboard → API Keys → Secret key
+   - `ANTHROPIC_API_KEY`: Get from [Anthropic Console](https://console.anthropic.com/) → API Keys (required for question generation, tech stack recommendations, and PRD generation)
+   - `PERPLEXITY_API_KEY`: Get from [Perplexity Dashboard](https://www.perplexity.ai/settings/api) → API Keys (required for tech stack research and validation)
 
    **Note for AI Agent Users**: If you're working with an AI agent (like Claude Code), you can paste your Clerk keys directly in the chat, and the agent will create or update the `.env.local` file for you. The `NEXT_PUBLIC_CONVEX_URL` should already be populated from Step 3.
 
@@ -170,6 +176,23 @@ npm run dev:backend
 - Check that your Convex dev server is running: `npm run dev:backend`
 - Verify your internet connection
 
+### "PERPLEXITY_API_KEY not configured" Error
+- Ensure `PERPLEXITY_API_KEY` is set in `.env.local`
+- Get your API key from [Perplexity Dashboard](https://www.perplexity.ai/settings/api)
+- Restart the Convex backend after adding: `npm run dev:backend`
+- **Note:** The API key must be set in `.env.local` even though Convex runs in the cloud, as it's accessed during local development
+
+### "ANTHROPIC_API_KEY not configured" Error
+- Ensure `ANTHROPIC_API_KEY` is set in `.env.local`
+- Get your API key from [Anthropic Console](https://console.anthropic.com/)
+- Restart the Convex backend after adding: `npm run dev:backend`
+
+### PRD Generation Features Not Working
+- Ensure both `ANTHROPIC_API_KEY` and `PERPLEXITY_API_KEY` are set in `.env.local`
+- Click the "Retry" button if generation fails
+- Check the browser console for detailed error messages
+- Verify you have sufficient API credits with both providers
+
 ### Authentication Not Working
 - Verify the JWT template in Clerk is named exactly "convex"
 - Check that `CLERK_JWT_ISSUER_DOMAIN` is set in Convex Dashboard environment variables
@@ -206,6 +229,8 @@ npm run dev:backend
      - `NEXT_PUBLIC_CONVEX_URL`
      - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
      - `CLERK_SECRET_KEY`
+     - `ANTHROPIC_API_KEY`
+     - `PERPLEXITY_API_KEY`
 
 4. **Deploy**
    - Vercel will automatically deploy on every push to main

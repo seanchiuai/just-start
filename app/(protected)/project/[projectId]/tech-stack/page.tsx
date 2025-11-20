@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { Loader2 } from "lucide-react";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { TechCategoryCard } from "@/components/features/tech-stack/tech-category-card";
 import { AlternativesDialog } from "@/components/features/tech-stack/alternatives-dialog";
@@ -23,6 +24,10 @@ export default function TechStackPage() {
 
   // Confirm mutation
   const confirmStack = useMutation(api.techStack.confirm);
+  const researchTechStack = useAction(api.techStack.research);
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState("");
 
   // Track selected technologies
   const [selections, setSelections] = useState<Record<TechCategory, string>>({
@@ -32,6 +37,22 @@ export default function TechStackPage() {
     auth: "",
     hosting: "",
   });
+
+  // Fallback: trigger generation if tech stack doesn't exist
+  useEffect(() => {
+    if (project && techStack === null && !isGenerating && !generationError) {
+      setIsGenerating(true);
+      researchTechStack({ projectId })
+        .then(() => {
+          setIsGenerating(false);
+        })
+        .catch((err) => {
+          console.error("Failed to generate tech stack:", err);
+          setGenerationError("Failed to generate tech stack. Please try again.");
+          setIsGenerating(false);
+        });
+    }
+  }, [project, techStack, projectId, isGenerating, generationError, researchTechStack]);
 
   // Initialize selections from techStack when available
   useEffect(() => {
@@ -99,16 +120,32 @@ export default function TechStackPage() {
     );
   }
 
-  // No tech stack data
+  // Generating state or error state
   if (techStack === null) {
     return (
       <WizardLayout projectName={project.appName} currentStep={project.currentStep}>
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
-            <p className="text-sm text-destructive">
-              Tech stack recommendations not found. Please complete the previous steps.
-            </p>
-          </div>
+          {generationError ? (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
+              <p className="text-sm text-destructive">{generationError}</p>
+              <button
+                onClick={() => {
+                  setGenerationError("");
+                  setIsGenerating(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Researching and generating tech stack recommendations...
+              </p>
+            </div>
+          )}
         </div>
       </WizardLayout>
     );

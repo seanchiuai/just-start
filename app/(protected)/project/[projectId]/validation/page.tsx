@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { Loader2 } from "lucide-react";
 import { WizardLayout } from "@/components/features/project/wizard-layout";
 import { ValidationStatus } from "@/components/features/validation/validation-status";
 import { IssueCard } from "@/components/features/validation/issue-card";
@@ -22,6 +24,26 @@ export default function ValidationPage() {
 
   // Mutation to acknowledge warnings
   const acknowledgeWarnings = useMutation(api.compatibility.acknowledgeWarnings);
+  const validateCompatibility = useAction(api.compatibility.validate);
+
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState("");
+
+  // Fallback: trigger validation if it doesn't exist
+  useEffect(() => {
+    if (project && validation === null && !isValidating && !validationError) {
+      setIsValidating(true);
+      validateCompatibility({ projectId })
+        .then(() => {
+          setIsValidating(false);
+        })
+        .catch((err) => {
+          console.error("Failed to validate compatibility:", err);
+          setValidationError("Failed to validate compatibility. Please try again.");
+          setIsValidating(false);
+        });
+    }
+  }, [project, validation, projectId, isValidating, validationError, validateCompatibility]);
 
   // Loading state
   if (project === undefined || validation === undefined) {
@@ -47,16 +69,32 @@ export default function ValidationPage() {
     );
   }
 
-  // Error state - validation not found
+  // Validating state or error state
   if (validation === null) {
     return (
       <WizardLayout projectName={project.appName} currentStep={project.currentStep}>
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
-            <p className="text-sm text-destructive">
-              Validation results not found. Please complete the previous steps first.
-            </p>
-          </div>
+          {validationError ? (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
+              <p className="text-sm text-destructive">{validationError}</p>
+              <button
+                onClick={() => {
+                  setValidationError("");
+                  setIsValidating(false);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Validating tech stack compatibility...
+              </p>
+            </div>
+          )}
         </div>
       </WizardLayout>
     );
