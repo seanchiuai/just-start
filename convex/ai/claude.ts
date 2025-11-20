@@ -361,11 +361,11 @@ Return ONLY valid JSON matching this structure (no markdown, no code blocks):
     }
   ],
   "techStack": {
-    "frontend": { "technology": "...", "reasoning": "...", "pros": [...], "cons": [...] },
-    "backend": {...},
-    "database": {...},
-    "auth": {...},
-    "hosting": {...}
+    "frontend": "${techStack.frontend}",
+    "backend": "${techStack.backend}",
+    "database": "${techStack.database}",
+    "auth": "${techStack.auth}",
+    "hosting": "${techStack.hosting}"
   },
   "features": {
     "mvpFeatures": [
