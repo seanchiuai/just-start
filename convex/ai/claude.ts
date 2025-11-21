@@ -8,12 +8,14 @@ const anthropic = new Anthropic({
 });
 
 // Question generation types
+export type QuestionCategory = "features" | "audience" | "scale" | "workflow" | "technical";
+
 export interface Question {
   id: number;
   question: string;
   options: string[];
   default: string;
-  category: string;
+  category: QuestionCategory;
 }
 
 // Tech recommendation types

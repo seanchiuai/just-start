@@ -74,7 +74,13 @@ export default defineSchema({
         question: v.string(),
         options: v.array(v.string()),
         default: v.string(),
-        category: v.string(),
+        category: v.union(
+          v.literal("features"),
+          v.literal("audience"),
+          v.literal("scale"),
+          v.literal("workflow"),
+          v.literal("technical")
+        ),
       })
     ),
     // Maps question ID (as string) to selected option string
