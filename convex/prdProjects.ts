@@ -295,3 +295,23 @@ export const clearGenerationStatus = internalMutation({
     });
   },
 });
+
+// Internal: Verify user owns the project (for actions)
+export const verifyOwnership = internalQuery({
+  args: { projectId: v.id("prdProjects"), clerkId: v.string() },
+  handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) return { authorized: false, project: null };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+
+    if (!user || project.userId !== user._id) {
+      return { authorized: false, project: null };
+    }
+
+    return { authorized: true, project, user };
+  },
+});

@@ -2,6 +2,30 @@
 
 ## [Unreleased] - 2025-11-20
 
+### CRITICAL SECURITY FIX: Authorization Bypass in Actions
+
+**Vulnerability:**
+- Multiple actions (generate PRD, research tech stack, validate compatibility, generate questions) did not verify project ownership
+- Allowed any authenticated user to trigger operations on projects they don't own
+- Could drain victim's credits and generate PRDs without authorization
+
+**Fix Applied:**
+- Added `verifyOwnership` internal query to `prdProjects.ts`
+- Created `requireProjectOwnership` helper function in `lib/auth.ts`
+- Updated 4 vulnerable actions with proper authorization checks:
+  - `prdActions.generate` - Now uses `requireProjectOwnership`
+  - `techStack.research` - Added ownership verification
+  - `compatibility.validate` - Added ownership verification
+  - `questions.generate` - Added ownership verification
+- All actions now verify `ctx.auth.getUserIdentity()` matches project owner before processing
+
+**Security Impact:**
+- Prevents unauthorized PRD generation and credit theft
+- Blocks unauthorized access to project data and operations
+- Ensures row-level security across all project-related actions
+
+---
+
 ### Credits System Implementation
 
 **Backend Changes:**

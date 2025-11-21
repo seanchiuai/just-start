@@ -194,6 +194,12 @@ export const saveAnswers = mutation({
 export const generate = action({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
+    // Verify authentication and project ownership
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
     // Get project details
     const project = await ctx.runQuery(internal.prdProjects.getInternal, {
       projectId: args.projectId,
@@ -201,6 +207,15 @@ export const generate = action({
 
     if (!project) {
       throw new Error("Project not found");
+    }
+
+    // Verify ownership
+    const user = await ctx.runQuery(internal.users.getByClerkIdInternal, {
+      clerkId: identity.subject,
+    });
+
+    if (!user || project.userId !== user._id) {
+      throw new Error("Not authorized");
     }
 
     // Perform question generation

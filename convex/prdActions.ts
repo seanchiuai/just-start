@@ -6,7 +6,7 @@ import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { generatePRD } from "./ai/claude";
 import { prdToMarkdown } from "./lib/markdown";
-import { requirePrdOwnership } from "./lib/auth";
+import { requirePrdOwnership, requireProjectOwnership } from "./lib/auth";
 
 // Generate cryptographically secure random token
 // 32 bytes = 256 bits of entropy, encoded as URL-safe base64
@@ -23,11 +23,16 @@ function generateToken(): string {
 export const generate = action({
   args: { projectId: v.id("prdProjects") },
   handler: async (ctx, args) => {
+    // Verify authentication and project ownership FIRST
+    const { project, user } = await requireProjectOwnership(ctx, args.projectId);
+
+    // Check if user has credits remaining
+    if (user.subscription.credits <= 0) {
+      throw new Error("INSUFFICIENT_CREDITS");
+    }
+
     // Get all project context
-    const [project, questionSet, techStack, compatibility] = await Promise.all([
-      ctx.runQuery(internal.prdProjects.getInternal, {
-        projectId: args.projectId,
-      }),
+    const [questionSet, techStack, compatibility] = await Promise.all([
       ctx.runQuery(internal.questions.getByProjectInternal, {
         projectId: args.projectId,
       }),
@@ -39,29 +44,12 @@ export const generate = action({
       }),
     ]);
 
-    if (!project) {
-      throw new Error("Project not found");
-    }
-
     if (!questionSet || !questionSet.answers) {
       throw new Error("Question answers not found");
     }
 
     if (!techStack || !techStack.confirmedStack) {
       throw new Error("Confirmed tech stack not found");
-    }
-
-    // Check if user has credits remaining
-    const user = await ctx.runQuery(internal.users.getInternal, {
-      userId: project.userId,
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    if (user.subscription.credits <= 0) {
-      throw new Error("INSUFFICIENT_CREDITS");
     }
 
     // Update progress
@@ -94,7 +82,7 @@ export const generate = action({
       // Save PRD (as JSON string)
       await ctx.runMutation(internal.prd.save, {
         projectId: args.projectId,
-        userId: project.userId,
+        userId: user._id,
         content: JSON.stringify(prdContent),
       });
 
@@ -107,12 +95,12 @@ export const generate = action({
 
       // Increment user's PRD count
       await ctx.runMutation(internal.users.incrementPrdsGenerated, {
-        userId: project.userId,
+        userId: user._id,
       });
 
       // Decrement user's credits
       await ctx.runMutation(internal.users.decrementCredits, {
-        userId: project.userId,
+        userId: user._id,
       });
 
       // Clear generation status

@@ -28,3 +28,21 @@ export async function requirePrdOwnership(
 
     return { identity, prd };
 }
+
+export async function requireProjectOwnership(
+    ctx: ActionCtx,
+    projectId: Id<"prdProjects">
+) {
+    const identity = await requireAuth(ctx);
+
+    const { authorized, project, user } = await ctx.runQuery(internal.prdProjects.verifyOwnership, {
+        projectId,
+        clerkId: identity.subject,
+    });
+
+    if (!authorized || !project || !user) {
+        throw new Error("Not authorized");
+    }
+
+    return { identity, project, user };
+}
