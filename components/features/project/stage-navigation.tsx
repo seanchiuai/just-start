@@ -146,21 +146,21 @@ export function StageNavigation({
           <DialogHeader>
             <DialogTitle>Go back to {selectedStage?.name}?</DialogTitle>
             <DialogDescription className="space-y-2 pt-2">
-              <p>
+              <div>
                 Going back to <strong>{selectedStage?.name}</strong> will delete all progress after this stage.
-              </p>
+              </div>
               {selectedStage && (
-                <p className="text-destructive font-medium">
+                <div className="text-destructive font-medium">
                   This will delete:{" "}
                   {selectedStage.id <= 1 && "Questions, Tech Stack, Validation, and PRD"}
                   {selectedStage.id === 2 && "Tech Stack, Validation, and PRD"}
                   {selectedStage.id === 3 && "Validation and PRD"}
                   {selectedStage.id === 4 && "PRD"}
-                </p>
+                </div>
               )}
-              <p>
+              <div>
                 You&apos;ll need to regenerate these stages after making your changes.
-              </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
