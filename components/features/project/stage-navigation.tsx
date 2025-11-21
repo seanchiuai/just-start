@@ -9,7 +9,6 @@ import { Check, Circle, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
