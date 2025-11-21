@@ -145,24 +145,24 @@ export function StageNavigation({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Go back to {selectedStage?.name}?</DialogTitle>
-            <DialogDescription className="space-y-2 pt-2">
-              <div>
-                Going back to <strong>{selectedStage?.name}</strong> will delete all progress after this stage.
-              </div>
-              {selectedStage && (
-                <div className="text-destructive font-medium">
-                  This will delete:{" "}
-                  {selectedStage.id <= 1 && "Questions, Tech Stack, Validation, and PRD"}
-                  {selectedStage.id === 2 && "Tech Stack, Validation, and PRD"}
-                  {selectedStage.id === 3 && "Validation and PRD"}
-                  {selectedStage.id === 4 && "PRD"}
-                </div>
-              )}
-              <div>
-                You&apos;ll need to regenerate these stages after making your changes.
-              </div>
-            </DialogDescription>
           </DialogHeader>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div>
+              Going back to <strong>{selectedStage?.name}</strong> will delete all progress after this stage.
+            </div>
+            {selectedStage && (
+              <div className="text-destructive font-medium">
+                This will delete:{" "}
+                {selectedStage.id <= 1 && "Questions, Tech Stack, Validation, and PRD"}
+                {selectedStage.id === 2 && "Tech Stack, Validation, and PRD"}
+                {selectedStage.id === 3 && "Validation and PRD"}
+                {selectedStage.id === 4 && "PRD"}
+              </div>
+            )}
+            <div>
+              You&apos;ll need to regenerate these stages after making your changes.
+            </div>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
