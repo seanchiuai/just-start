@@ -127,7 +127,7 @@ export const incrementPrdsGenerated = internalMutation({
   },
 });
 
-// Decrement credits
+// Decrement credits (legacy - prefer tryDecrementCredits for race-safe operations)
 export const decrementCredits = internalMutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
@@ -140,6 +140,52 @@ export const decrementCredits = internalMutation({
       subscription: {
         tier: user.subscription.tier,
         credits: user.subscription.credits - 1,
+      },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Atomically try to decrement credits (returns false if insufficient credits)
+// Use this for race-safe credit deduction before expensive operations
+export const tryDecrementCredits = internalMutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Atomic check: if no credits, return false without modifying
+    if (user.subscription.credits <= 0) {
+      return false;
+    }
+
+    // Decrement atomically
+    await ctx.db.patch(args.userId, {
+      subscription: {
+        tier: user.subscription.tier,
+        credits: user.subscription.credits - 1,
+      },
+      updatedAt: Date.now(),
+    });
+
+    return true;
+  },
+});
+
+// Increment credits (for rollback after failed operations)
+export const incrementCredits = internalMutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("User not found");
+
+    // Increment credits
+    await ctx.db.patch(args.userId, {
+      subscription: {
+        tier: user.subscription.tier,
+        credits: user.subscription.credits + 1,
       },
       updatedAt: Date.now(),
     });

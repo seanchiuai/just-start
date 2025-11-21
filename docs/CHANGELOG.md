@@ -26,6 +26,39 @@
 
 ---
 
+### SECURITY FIX: Race Condition in Credit Deduction
+
+**Vulnerability:**
+- Credit check and deduction separated by 30-60s AI operation in `prdActions.generate`
+- Multiple parallel requests could all pass credit check before any completed
+- User with 1 credit could open multiple tabs and generate unlimited PRDs
+- Classic check-then-act race condition: check → (long delay) → act
+
+**Fix Applied:**
+- Created `tryDecrementCredits` mutation in `users.ts` - atomically checks and decrements credits
+- Created `incrementCredits` mutation for rollback on failed operations
+- Updated `prdActions.generate` to use atomic deduction pattern:
+  1. Verify ownership
+  2. Validate project data
+  3. **Atomically decrement credit BEFORE AI generation** (prevents race)
+  4. Try PRD generation
+  5. On success: complete normally
+  6. On failure: **Rollback credit** (user not charged for failures)
+
+**Race Condition Eliminated:**
+- Before: Check credits → Generate PRD (30-60s) → Decrement credits
+- After: **Atomically decrement** → Generate PRD (30-60s) → Rollback on error
+- Multiple parallel requests now properly consume credits one-by-one
+- First request that succeeds in decrementing gets to generate; others fail immediately
+- Users never charged for failed PRD generations
+
+**Security Impact:**
+- Prevents credit theft via parallel request exploitation
+- Ensures accurate billing and resource consumption tracking
+- Improves user experience: no charges for failed generations
+
+---
+
 ### Credits System Implementation
 
 **Backend Changes:**

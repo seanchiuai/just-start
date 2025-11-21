@@ -26,11 +26,6 @@ export const generate = action({
     // Verify authentication and project ownership FIRST
     const { project, user } = await requireProjectOwnership(ctx, args.projectId);
 
-    // Check if user has credits remaining
-    if (user.subscription.credits <= 0) {
-      throw new Error("INSUFFICIENT_CREDITS");
-    }
-
     // Get all project context
     const [questionSet, techStack, compatibility] = await Promise.all([
       ctx.runQuery(internal.questions.getByProjectInternal, {
@@ -50,6 +45,17 @@ export const generate = action({
 
     if (!techStack || !techStack.confirmedStack) {
       throw new Error("Confirmed tech stack not found");
+    }
+
+    // ATOMIC CREDIT DEDUCTION: Decrement credits BEFORE expensive AI operation
+    // This prevents race conditions where multiple requests pass credit check
+    // before any complete. If this fails, no AI resources are consumed.
+    const creditDeducted = await ctx.runMutation(internal.users.tryDecrementCredits, {
+      userId: user._id,
+    });
+
+    if (!creditDeducted) {
+      throw new Error("INSUFFICIENT_CREDITS");
     }
 
     // Update progress
@@ -98,11 +104,6 @@ export const generate = action({
         userId: user._id,
       });
 
-      // Decrement user's credits
-      await ctx.runMutation(internal.users.decrementCredits, {
-        userId: user._id,
-      });
-
       // Clear generation status
       await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
         projectId: args.projectId,
@@ -110,6 +111,12 @@ export const generate = action({
 
       return { success: true };
     } catch (error) {
+      // ROLLBACK: Restore credit since PRD generation failed
+      // This ensures users aren't charged for failed generations
+      await ctx.runMutation(internal.users.incrementCredits, {
+        userId: user._id,
+      });
+
       // Clear generation status on error
       await ctx.runMutation(internal.prdProjects.clearGenerationStatus, {
         projectId: args.projectId,
