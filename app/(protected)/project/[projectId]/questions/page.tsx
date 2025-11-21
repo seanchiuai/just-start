@@ -20,6 +20,8 @@ export default function QuestionsPage() {
   const questionSet = useQuery(api.questions.getByProject, { projectId });
   const saveAnswers = useMutation(api.questions.saveAnswers);
   const generateQuestions = useAction(api.questions.generate);
+  const resetFromStage = useMutation(api.prdProjects.resetFromStage);
+  const researchTechStack = useAction(api.techStack.research);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
@@ -42,7 +44,18 @@ export default function QuestionsPage() {
 
   const handleSubmit = async (answers: Record<string, string>) => {
     try {
+      // If answers already exist (re-editing), reset subsequent stages
+      if (questionSet?.answers) {
+        await resetFromStage({ projectId, stage: 2 });
+      }
+      
+      // Save the answers
       await saveAnswers({ projectId, answers });
+      
+      // Generate tech stack recommendations
+      await researchTechStack({ projectId });
+      
+      // Navigate to tech stack page
       router.push(`/project/${projectId}/tech-stack`);
     } catch (error) {
       console.error("Failed to save answers:", error);
@@ -55,6 +68,7 @@ export default function QuestionsPage() {
       <WizardLayout
         projectName="Loading..."
         currentStep={2}
+        projectId={projectId}
       >
         <div className="space-y-6">
           <div>
@@ -78,6 +92,7 @@ export default function QuestionsPage() {
       <WizardLayout
         projectName="Error"
         currentStep={2}
+        projectId={projectId}
       >
         <div className="flex flex-col items-center justify-center py-12">
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
@@ -96,6 +111,7 @@ export default function QuestionsPage() {
       <WizardLayout
         projectName={project.appName}
         currentStep={project.currentStep}
+        projectId={projectId}
       >
         <div className="flex flex-col items-center justify-center py-12">
           {generationError ? (
@@ -128,6 +144,7 @@ export default function QuestionsPage() {
     <WizardLayout
       projectName={project.appName}
       currentStep={project.currentStep}
+      projectId={projectId}
     >
       <div className="space-y-6">
         <div>
@@ -142,6 +159,7 @@ export default function QuestionsPage() {
 
         <QuestionsForm
           questions={questionSet.questions}
+          initialAnswers={questionSet.answers}
           onSubmit={handleSubmit}
         />
       </div>

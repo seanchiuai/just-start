@@ -146,6 +146,46 @@ export const updateStatus = mutation({
   },
 });
 
+// Update project name
+export const updateName = mutation({
+  args: {
+    projectId: v.id("prdProjects"),
+    appName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || project.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    // Trim name once and reuse
+    const trimmedName = args.appName.trim();
+
+    // Validate name
+    if (trimmedName.length === 0) {
+      throw new Error("Project name cannot be empty");
+    }
+    if (trimmedName.length > 100) {
+      throw new Error("Project name must be 100 characters or less");
+    }
+
+    await ctx.db.patch(args.projectId, {
+      appName: trimmedName,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 // Update last accessed
 export const updateLastAccessed = mutation({
   args: { projectId: v.id("prdProjects") },
@@ -293,6 +333,166 @@ export const clearGenerationStatus = internalMutation({
       generationStatus: undefined,
       updatedAt: Date.now(),
     });
+  },
+});
+
+// Update project input (appName and appDescription)
+export const updateInput = mutation({
+  args: {
+    projectId: v.id("prdProjects"),
+    appName: v.string(),
+    appDescription: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || project.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    await ctx.db.patch(args.projectId, {
+      appName: args.appName,
+      appDescription: args.appDescription,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Reset project from a specific stage (deletes all data after that stage)
+export const resetFromStage = mutation({
+  args: {
+    projectId: v.id("prdProjects"),
+    stage: v.number(), // 1=Input, 2=Questions, 3=TechStack, 4=Validation
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) throw new Error("Project not found");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user || project.userId !== user._id) {
+      throw new Error("Not authorized");
+    }
+
+    // Delete data based on stage
+    if (args.stage <= 1) {
+      // Reset from Input: delete everything after
+      const [questions, techStack, compatibility, prds] = await Promise.all([
+        ctx.db
+          .query("questionSets")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("techStackRecommendations")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("compatibilityChecks")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("prds")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+      ]);
+
+      await Promise.all([
+        ...questions.map((q) => ctx.db.delete(q._id)),
+        ...techStack.map((t) => ctx.db.delete(t._id)),
+        ...compatibility.map((c) => ctx.db.delete(c._id)),
+        ...prds.map((p) => ctx.db.delete(p._id)),
+      ]);
+
+      // Reset to stage 1
+      await ctx.db.patch(args.projectId, {
+        status: "draft",
+        currentStep: 1,
+        updatedAt: Date.now(),
+      });
+    } else if (args.stage <= 2) {
+      // Reset from Questions: delete tech stack, compatibility, and PRD
+      const [techStack, compatibility, prds] = await Promise.all([
+        ctx.db
+          .query("techStackRecommendations")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("compatibilityChecks")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("prds")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+      ]);
+
+      await Promise.all([
+        ...techStack.map((t) => ctx.db.delete(t._id)),
+        ...compatibility.map((c) => ctx.db.delete(c._id)),
+        ...prds.map((p) => ctx.db.delete(p._id)),
+      ]);
+
+      // Reset to stage 2
+      await ctx.db.patch(args.projectId, {
+        status: "questions",
+        currentStep: 2,
+        updatedAt: Date.now(),
+      });
+    } else if (args.stage <= 3) {
+      // Reset from Tech Stack: delete compatibility and PRD
+      const [compatibility, prds] = await Promise.all([
+        ctx.db
+          .query("compatibilityChecks")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+        ctx.db
+          .query("prds")
+          .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+          .collect(),
+      ]);
+
+      await Promise.all([
+        ...compatibility.map((c) => ctx.db.delete(c._id)),
+        ...prds.map((p) => ctx.db.delete(p._id)),
+      ]);
+
+      // Reset to stage 3
+      await ctx.db.patch(args.projectId, {
+        status: "research",
+        currentStep: 3,
+        updatedAt: Date.now(),
+      });
+    } else if (args.stage <= 4) {
+      // Reset from Validation: delete PRD only
+      const prds = await ctx.db
+        .query("prds")
+        .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
+        .collect();
+
+      await Promise.all([...prds.map((p) => ctx.db.delete(p._id))]);
+
+      // Reset to stage 4
+      await ctx.db.patch(args.projectId, {
+        status: "validation",
+        currentStep: 4,
+        updatedAt: Date.now(),
+      });
+    }
   },
 });
 

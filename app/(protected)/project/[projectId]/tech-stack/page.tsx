@@ -25,6 +25,8 @@ export default function TechStackPage() {
   // Confirm mutation
   const confirmStack = useMutation(api.techStack.confirm);
   const researchTechStack = useAction(api.techStack.research);
+  const resetFromStage = useMutation(api.prdProjects.resetFromStage);
+  const validateCompatibility = useAction(api.compatibility.validate);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
@@ -89,7 +91,18 @@ export default function TechStackPage() {
 
   const handleConfirm = async () => {
     try {
+      // If stack already confirmed (re-editing), reset subsequent stages
+      if (techStack?.confirmedStack) {
+        await resetFromStage({ projectId, stage: 3 });
+      }
+      
+      // Confirm the stack
       await confirmStack({ projectId, confirmedStack: selections });
+      
+      // Validate compatibility
+      await validateCompatibility({ projectId });
+      
+      // Navigate to validation page
       router.push(`/project/${projectId}/validation`);
     } catch (error) {
       console.error("Failed to confirm stack:", error);
@@ -99,7 +112,7 @@ export default function TechStackPage() {
   // Loading state
   if (project === undefined || techStack === undefined) {
     return (
-      <WizardLayout projectName="Loading..." currentStep={3}>
+      <WizardLayout projectName="Loading..." currentStep={3} projectId={projectId}>
         <TechStackSkeleton />
       </WizardLayout>
     );
@@ -108,7 +121,7 @@ export default function TechStackPage() {
   // Error state
   if (project === null) {
     return (
-      <WizardLayout projectName="Error" currentStep={3}>
+      <WizardLayout projectName="Error" currentStep={3} projectId={projectId}>
         <div className="flex flex-col items-center justify-center py-12">
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
             <p className="text-sm text-destructive">
@@ -123,7 +136,7 @@ export default function TechStackPage() {
   // Generating state or error state
   if (techStack === null) {
     return (
-      <WizardLayout projectName={project.appName} currentStep={project.currentStep}>
+      <WizardLayout projectName={project.appName} currentStep={project.currentStep} projectId={projectId}>
         <div className="flex flex-col items-center justify-center py-12">
           {generationError ? (
             <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
@@ -157,6 +170,7 @@ export default function TechStackPage() {
     <WizardLayout
       projectName={project.appName}
       currentStep={project.currentStep}
+      projectId={projectId}
     >
       <div className="space-y-6">
         <div>

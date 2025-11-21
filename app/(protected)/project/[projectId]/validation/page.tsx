@@ -27,6 +27,9 @@ export default function ValidationPage() {
   // Mutation to acknowledge warnings
   const acknowledgeWarnings = useMutation(api.compatibility.acknowledgeWarnings);
   const validateCompatibility = useAction(api.compatibility.validate);
+  const resetFromStage = useMutation(api.prdProjects.resetFromStage);
+  const generatePRD = useAction(api.prdActions.generate);
+  const existingPRD = useQuery(api.prd.getByProject, { projectId });
 
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState("");
@@ -50,7 +53,7 @@ export default function ValidationPage() {
   // Loading state
   if (project === undefined || validation === undefined || user === undefined) {
     return (
-      <WizardLayout projectName="Loading..." currentStep={4}>
+      <WizardLayout projectName="Loading..." currentStep={4} projectId={projectId}>
         <ValidationSkeleton />
       </WizardLayout>
     );
@@ -59,7 +62,7 @@ export default function ValidationPage() {
   // Error state - project not found
   if (project === null) {
     return (
-      <WizardLayout projectName="Error" currentStep={4}>
+      <WizardLayout projectName="Error" currentStep={4} projectId={projectId}>
         <div className="flex flex-col items-center justify-center py-12">
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
             <p className="text-sm text-destructive">
@@ -74,7 +77,7 @@ export default function ValidationPage() {
   // Validating state or error state
   if (validation === null) {
     return (
-      <WizardLayout projectName={project.appName} currentStep={project.currentStep}>
+      <WizardLayout projectName={project.appName} currentStep={project.currentStep} projectId={projectId}>
         <div className="flex flex-col items-center justify-center py-12">
           {validationError ? (
             <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center space-y-4">
@@ -124,6 +127,16 @@ export default function ValidationPage() {
       if (validation.status === "warnings") {
         await acknowledgeWarnings({ projectId });
       }
+      
+      // If PRD already exists (regenerating), reset stage
+      if (existingPRD) {
+        await resetFromStage({ projectId, stage: 4 });
+      }
+      
+      // Generate the PRD
+      await generatePRD({ projectId });
+      
+      // Navigate to PRD page
       router.push(`/project/${projectId}/prd`);
     } catch (error) {
       console.error("Failed to proceed:", error);
@@ -138,6 +151,7 @@ export default function ValidationPage() {
     <WizardLayout
       projectName={project.appName}
       currentStep={project.currentStep}
+      projectId={projectId}
     >
       <div className="space-y-6">
         <div>

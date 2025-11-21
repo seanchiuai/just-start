@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,10 +17,27 @@ import Link from "next/link";
 import { ProjectCard } from "@/components/dashboard/project-card";
 import { EmptyDashboard } from "@/components/dashboard/empty-state";
 import { DashboardSkeleton } from "@/components/dashboard/skeleton";
+import { RenameProjectDialog } from "@/components/features/project/rename-project-dialog";
+import { DeleteProjectDialog } from "@/components/features/project/delete-project-dialog";
 
 export default function DashboardPage() {
   const user = useQuery(api.users.getCurrentUser);
   const projects = useQuery(api.prdProjects.listByUser) as Doc<"prdProjects">[] | undefined;
+
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<Id<"prdProjects"> | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Pick<Doc<"prdProjects">, "_id" | "appName"> | null>(null);
+
+  const handleRename = (projectId: Id<"prdProjects">) => {
+    setSelectedProjectId(projectId);
+    setRenameDialogOpen(true);
+  };
+
+  const handleDelete = (project: Doc<"prdProjects">) => {
+    setSelectedProject({ _id: project._id, appName: project.appName });
+    setDeleteDialogOpen(true);
+  };
 
   const isLoading = user === undefined || projects === undefined;
 
@@ -113,11 +131,30 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <ProjectCard key={project._id} project={project} />
+              <ProjectCard 
+                key={project._id} 
+                project={project} 
+                onRename={handleRename}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
       </main>
+
+      {/* Dialogs */}
+      <RenameProjectDialog
+        open={renameDialogOpen}
+        onOpenChange={setRenameDialogOpen}
+        projectId={selectedProjectId}
+        onSuccess={() => setSelectedProjectId(null)}
+      />
+      <DeleteProjectDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        project={selectedProject}
+        onSuccess={() => setSelectedProject(null)}
+      />
     </div>
   );
 }

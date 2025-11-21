@@ -4,11 +4,14 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProgressIndicator } from "@/components/features/progress/progress-indicator";
+import { StageNavigation } from "@/components/features/project/stage-navigation";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface WizardLayoutProps {
   children: React.ReactNode;
   projectName: string;
   currentStep: number;
+  projectId?: Id<"prdProjects">;
   totalSteps?: number;
   stepLabels?: string[];
 }
@@ -19,6 +22,7 @@ export function WizardLayout({
   children,
   projectName,
   currentStep,
+  projectId,
   totalSteps = 5,
   stepLabels = defaultStepLabels,
 }: WizardLayoutProps) {
@@ -40,14 +44,21 @@ export function WizardLayout({
             <div className="w-24" /> {/* Spacer for centering */}
           </div>
 
-          {/* Progress indicator */}
-          <div className="max-w-2xl mx-auto">
-            <ProgressIndicator
-              currentStep={currentStep}
-              totalSteps={totalSteps}
-              labels={stepLabels}
-            />
-          </div>
+          {/* Stage Navigation - only show if projectId is provided */}
+          {projectId ? (
+            <div className="max-w-4xl mx-auto">
+              <StageNavigation projectId={projectId} currentStep={currentStep} />
+            </div>
+          ) : (
+            /* Progress indicator fallback */
+            <div className="max-w-2xl mx-auto">
+              <ProgressIndicator
+                currentStep={currentStep}
+                totalSteps={totalSteps}
+                labels={stepLabels}
+              />
+            </div>
+          )}
         </div>
       </header>
 
