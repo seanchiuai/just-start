@@ -241,9 +241,8 @@ export const generate = action({
 // Regenerate questions (e.g., if user wants different questions)
 export const regenerate = action({
   args: { projectId: v.id("prdProjects") },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ success: boolean; questionCount: number }> => {
     // Get project details first (same pattern as generate action)
-    // @ts-expect-error - TypeScript type inference issue with internal API
     const project = await ctx.runQuery(internal.prdProjects.getInternal, {
       projectId: args.projectId,
     });

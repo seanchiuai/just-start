@@ -13,10 +13,9 @@ export async function requireAuth(ctx: ActionCtx | QueryCtx) {
 export async function requirePrdOwnership(
     ctx: ActionCtx,
     prdId: Id<"prds">
-) {
+): Promise<{ identity: Awaited<ReturnType<typeof requireAuth>>; prd: any }> {
     const identity = await requireAuth(ctx);
 
-    // @ts-expect-error - TypeScript type inference issue with internal API
     const { authorized, prd } = await ctx.runQuery(internal.prd.verifyOwnership, {
         prdId,
         clerkId: identity.subject,
@@ -32,7 +31,7 @@ export async function requirePrdOwnership(
 export async function requireProjectOwnership(
     ctx: ActionCtx,
     projectId: Id<"prdProjects">
-) {
+): Promise<{ identity: Awaited<ReturnType<typeof requireAuth>>; project: any; user: any }> {
     const identity = await requireAuth(ctx);
 
     const { authorized, project, user } = await ctx.runQuery(internal.prdProjects.verifyOwnership, {
