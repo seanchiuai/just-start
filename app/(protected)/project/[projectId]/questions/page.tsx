@@ -25,6 +25,8 @@ export default function QuestionsPage() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Fallback: trigger generation if questions don't exist
   useEffect(() => {
@@ -43,6 +45,9 @@ export default function QuestionsPage() {
   }, [project, questionSet, projectId, isGenerating, generationError, generateQuestions]);
 
   const handleSubmit = async (answers: Record<string, string>) => {
+    setSubmitError("");
+    setIsSubmitting(true);
+    
     try {
       // If answers already exist (re-editing), reset subsequent stages
       if (questionSet?.answers) {
@@ -59,6 +64,9 @@ export default function QuestionsPage() {
       router.push(`/project/${projectId}/tech-stack`);
     } catch (error) {
       console.error("Failed to save answers:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save answers and generate tech stack. Please try again.";
+      setSubmitError(errorMessage);
+      setIsSubmitting(false);
     }
   };
 
@@ -161,6 +169,8 @@ export default function QuestionsPage() {
           questions={questionSet.questions}
           initialAnswers={questionSet.answers}
           onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          error={submitError}
         />
       </div>
     </WizardLayout>

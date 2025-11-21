@@ -8,6 +8,8 @@ import { TechCategory } from "@/lib/types/prd";
 interface TechStackSummaryProps {
   stack: Record<TechCategory, string>;
   onConfirm: () => void;
+  isConfirming?: boolean;
+  error?: string;
 }
 
 const categoryIcons: Record<TechCategory, React.ElementType> = {
@@ -26,7 +28,7 @@ const categoryOrder: TechCategory[] = [
   "hosting",
 ];
 
-export function TechStackSummary({ stack, onConfirm }: TechStackSummaryProps) {
+export function TechStackSummary({ stack, onConfirm, isConfirming = false, error = "" }: TechStackSummaryProps) {
   return (
     <Card className="card-editorial">
       <CardContent className="p-6">
@@ -69,13 +71,28 @@ export function TechStackSummary({ stack, onConfirm }: TechStackSummaryProps) {
           </div>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 mb-4">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+
         {/* Confirm button */}
         <Button
           onClick={onConfirm}
           size="lg"
           className="w-full bg-primary hover:bg-primary/90"
+          disabled={isConfirming}
         >
-          Confirm Stack & Validate
+          {isConfirming ? (
+            <>
+              <span className="mr-2">Processing...</span>
+              <span className="animate-spin">⏳</span>
+            </>
+          ) : (
+            "Confirm Stack & Validate"
+          )}
         </Button>
       </CardContent>
     </Card>

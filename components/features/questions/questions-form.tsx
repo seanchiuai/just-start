@@ -9,12 +9,16 @@ interface QuestionsFormProps {
   questions: Question[];
   initialAnswers?: Record<string, string>;
   onSubmit: (answers: Record<string, string>) => void;
+  isSubmitting?: boolean;
+  error?: string;
 }
 
 export function QuestionsForm({
   questions,
   initialAnswers = {},
   onSubmit,
+  isSubmitting = false,
+  error = "",
 }: QuestionsFormProps) {
   const [answers, setAnswers] = useState<Record<string, string>>(() => {
     // Initialize with defaults or provided answers
@@ -82,14 +86,29 @@ export function QuestionsForm({
         ))}
       </div>
 
+      {/* Error message */}
+      {error && (
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      )}
+
       {/* Submit button */}
       <div className="flex justify-end pt-4">
         <Button
           type="submit"
           size="lg"
           className="bg-primary hover:bg-primary/90"
+          disabled={isSubmitting}
         >
-          Continue to Tech Stack
+          {isSubmitting ? (
+            <>
+              <span className="mr-2">Processing...</span>
+              <span className="animate-spin">⏳</span>
+            </>
+          ) : (
+            "Continue to Tech Stack"
+          )}
         </Button>
       </div>
     </form>

@@ -30,6 +30,8 @@ export default function TechStackPage() {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
 
   // Track selected technologies
   const [selections, setSelections] = useState<Record<TechCategory, string>>({
@@ -90,6 +92,9 @@ export default function TechStackPage() {
   };
 
   const handleConfirm = async () => {
+    setConfirmError("");
+    setIsConfirming(true);
+    
     try {
       // If stack already confirmed (re-editing), reset subsequent stages
       if (techStack?.confirmedStack) {
@@ -106,6 +111,9 @@ export default function TechStackPage() {
       router.push(`/project/${projectId}/validation`);
     } catch (error) {
       console.error("Failed to confirm stack:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to confirm stack and validate compatibility. Please try again.";
+      setConfirmError(errorMessage);
+      setIsConfirming(false);
     }
   };
 
@@ -196,7 +204,12 @@ export default function TechStackPage() {
         </div>
 
         {/* Summary and confirm */}
-        <TechStackSummary stack={selections} onConfirm={handleConfirm} />
+        <TechStackSummary 
+          stack={selections} 
+          onConfirm={handleConfirm}
+          isConfirming={isConfirming}
+          error={confirmError}
+        />
 
         {/* Alternatives dialog */}
         <AlternativesDialog

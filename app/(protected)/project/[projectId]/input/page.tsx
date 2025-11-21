@@ -53,8 +53,8 @@ export default function InputEditPage() {
     }
 
     setIsLoading(true);
-    setLoadingMessage("Updating project...");
     try {
+      setLoadingMessage("Updating project...");
       // Update the project input
       await updateInput({
         projectId,
@@ -74,7 +74,8 @@ export default function InputEditPage() {
       router.push(`/project/${projectId}/questions`);
     } catch (err) {
       console.error("Failed to update project:", err);
-      setError("Failed to update project. Please try again.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to update project. Please try again.";
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

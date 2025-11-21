@@ -33,6 +33,8 @@ export default function ValidationPage() {
 
   const [isValidating, setIsValidating] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [isProceeding, setIsProceeding] = useState(false);
+  const [proceedError, setProceedError] = useState("");
 
   // Fallback: trigger validation if it doesn't exist
   useEffect(() => {
@@ -123,6 +125,9 @@ export default function ValidationPage() {
       return; // Disabled when no credits
     }
     
+    setProceedError("");
+    setIsProceeding(true);
+    
     try {
       if (validation.status === "warnings") {
         await acknowledgeWarnings({ projectId });
@@ -140,6 +145,9 @@ export default function ValidationPage() {
       router.push(`/project/${projectId}/prd`);
     } catch (error) {
       console.error("Failed to proceed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate PRD. Please try again.";
+      setProceedError(errorMessage);
+      setIsProceeding(false);
     }
   };
 
@@ -221,6 +229,8 @@ export default function ValidationPage() {
             onModify={handleModify}
             disabled={!hasCredits}
             disabledMessage={!hasCredits ? "Upgrade to continue" : undefined}
+            isProceeding={isProceeding}
+            error={proceedError}
           />
         </div>
       </div>
