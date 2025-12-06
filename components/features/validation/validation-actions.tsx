@@ -92,7 +92,11 @@ export function ValidationActions({
           htmlFor="acknowledge"
           className="text-sm text-muted-foreground cursor-pointer"
         >
-          I understand these warnings and want to proceed with PRD generation
+          <span>I understand these warnings and want to proceed with PRD generation</span>
+          <span className="ml-1 text-destructive">*</span>
+          <span className="mt-1 block text-xs text-muted-foreground">
+            You must check this box to continue with PRD generation.
+          </span>
         </Label>
       </div>
 

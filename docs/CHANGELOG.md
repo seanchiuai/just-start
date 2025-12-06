@@ -319,6 +319,7 @@
 - Added useEffect to question-card to initialize otherValue from value prop
 - Changed "Other" fallback to empty string in question-card handlers
 - Moved export-dropdown setTimeout to useEffect with cleanup to prevent memory leaks
+- Clarified validation warning acknowledgment with required asterisk and helper text
 
 ---
 
