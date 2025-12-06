@@ -82,7 +82,7 @@ export function ValidationActions({
         </div>
       )}
       
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
         <Checkbox
           id="acknowledge"
           checked={acknowledged}
@@ -94,9 +94,6 @@ export function ValidationActions({
         >
           <span>I understand these warnings and want to proceed with PRD generation</span>
           <span className="ml-1 text-destructive">*</span>
-          <span className="mt-1 block text-xs text-muted-foreground">
-            You must check this box to continue with PRD generation.
-          </span>
         </Label>
       </div>
 

@@ -320,6 +320,7 @@
 - Changed "Other" fallback to empty string in question-card handlers
 - Moved export-dropdown setTimeout to useEffect with cleanup to prevent memory leaks
 - Clarified validation warning acknowledgment with required asterisk and helper text
+- Highlighted warning acknowledgment checkbox and removed helper copy while keeping required asterisk
 
 ---
 
