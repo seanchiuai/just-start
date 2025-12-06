@@ -321,6 +321,7 @@
 - Moved export-dropdown setTimeout to useEffect with cleanup to prevent memory leaks
 - Clarified validation warning acknowledgment with required asterisk and helper text
 - Highlighted warning acknowledgment checkbox and removed helper copy while keeping required asterisk
+- Fixed PRD viewer layout so table of contents no longer pushes content off the page; mobile TOC now stacks above content
 
 ---
 

@@ -48,23 +48,36 @@ export function PRDViewer({ prd }: PRDViewerProps) {
   };
 
   return (
-    <div className="flex gap-8">
-      {/* Navigation */}
+    <div className="space-y-6">
+      {/* Mobile navigation sits above content */}
       <PRDNavigation
         sections={prdSections}
         activeSection={activeSection}
         onNavigate={handleNavigate}
+        variant="mobile"
       />
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 space-y-12">
-        <OverviewSection prd={prd} />
-        <GoalsSection prd={prd} />
-        <PersonasSection prd={prd} />
-        <TechStackSection prd={prd} />
-        <FeaturesSection prd={prd} />
-        <ArchitectureSection prd={prd} />
-        <UIUXSection prd={prd} />
+      <div className="grid lg:grid-cols-[220px_1fr] gap-8">
+        {/* Desktop navigation in its own column */}
+        <div className="hidden lg:block">
+          <PRDNavigation
+            sections={prdSections}
+            activeSection={activeSection}
+            onNavigate={handleNavigate}
+            variant="desktop"
+          />
+        </div>
+
+        {/* Content */}
+        <div className="space-y-12">
+          <OverviewSection prd={prd} />
+          <GoalsSection prd={prd} />
+          <PersonasSection prd={prd} />
+          <TechStackSection prd={prd} />
+          <FeaturesSection prd={prd} />
+          <ArchitectureSection prd={prd} />
+          <UIUXSection prd={prd} />
+        </div>
       </div>
     </div>
   );
